@@ -1,0 +1,47 @@
+Name: 帝王三国单机版_1.5.8 纯洁版(1).apk
+UnityVersion: 2020.3.0f1c1
+IL2CPP: False
+Missed: for UnityEngine.IMGUIModule.dll/UnityEngine/GUISkin
+Missed: for UnityEngine.IMGUIModule.dll/UnityEngine/GUISkin
+Resolve4: UnityEngine.CoreModule
+Resolve4: mscorlib
+Resolve4: UnityEngine.TextRenderingModule
+Resolve4: UnityEngine.UI
+1 GameObject - find for 2020.3.0f1c1
+Missed: for UnityEngine.TilemapModule.dll/UnityEngine.Tilemaps/Tile
+[129: PlayerSettings] is_break_read2: Array \m_StackTraceTypes\Array [data, item_size:4] bytes_size=781739264 > buffer.len-pos=419
+129: PlayerSettings pathID: 1
+
+Ba.Warning: pos: 268 != len: 687 for: {fileID: 0 (globalgamemanagers), pathID: 1, m_Name: , type: PlayerSettings}
+Ba.Warning: pos: 44 != len: 48 for: {fileID: 0 (globalgamemanagers), pathID: 4, m_Name: , type: AudioManager}
+Ba.Warning: pos: 108 != len: 264 for: {fileID: 0 (globalgamemanagers), pathID: 10, m_Name: , type: PhysicsManager}
+[141: BuildSettings] string.size 3810064921 > 10_000_000 \m_Version, buf.Position=112
+141: BuildSettings pathID: 11
+
+Ba.Warning: pos: 112 != len: 240 for: {fileID: 0 (globalgamemanagers), pathID: 11, m_Name: , type: BuildSettings}
+Ba.Warning: pos: 352 != len: 372 for: {fileID: 0 (globalgamemanagers), pathID: 14, m_Name: , type: NavMeshAreas}
+Ba.Warning: pos: 148 != len: 280 for: {fileID: 0 (globalgamemanagers), pathID: 15, m_Name: , type: Physics2DSettings}
+Resolve4: UnityEngine.AudioModule
+Make Script DB
+Make Scripts
+Code decompile: Assembly-CSharp.dll, class_name=*, type=DecompilerFi
+Check for DeObfuscate: Assembly-CSharp.dll
+Find requried deobfuscate class names, count: 118 (activate with 'Allow to de-obfuscate assembly' options)
+Assembly 'Assembly-CSharp.dll' - obfuscated (for deobfuscate - activate 'Allow to de-obfuscate assembly' options)
+DecompilerFi.exe begin decomplile
+DecompilerFi.exe end process
+Assembly-CSharp.dll- prepare classes, count: 121
+Assembly-CSharp.dll - decompiled
+Make plugins
+Check for DeObfuscate: Unity.2D.SpriteShape.Runtime.dll
+Check for DeObfuscate: Newtonsoft.Json.dll
+Check for DeObfuscate: Unity.2D.Animation.Runtime.dll
+Check for DeObfuscate: Unity.2D.Animation.Triangle.Runtime.dll
+Check for DeObfuscate: Unity.2D.Common.Runtime.dll
+Check for DeObfuscate: Unity.2D.IK.Runtime.dll
+Check for DeObfuscate: Unity.2D.PixelPerfect.dll
+Check for DeObfuscate: Unity.InternalAPIEngineBridge.001.dll
+Check for DeObfuscate: Unity.Mathematics.dll
+Make binStreamingAssets
+Write scrip db
+MakeUnityProject - end, dir: D:\新建文件夹
