@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 750e975748784163a6bcf3fee703ca13
+timeCreated: 1668864397
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 0
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: "\u65B0\u4F24\u5BB3\u6570\u5B57"
+  fontNames: []
+  fallbackFontReferences: []
+  customCharacters:
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData:
+  assetBundleName: 
+  assetBundleVariant: 

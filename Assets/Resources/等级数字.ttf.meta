@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 0669c19ef30a48b396b72adf2b7e30eb
+timeCreated: 1668864397
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 0
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: "\u7B49\u7EA7\u6570\u5B57"
+  fontNames: []
+  fallbackFontReferences: []
+  customCharacters:
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData:
+  assetBundleName: 
+  assetBundleVariant: 
