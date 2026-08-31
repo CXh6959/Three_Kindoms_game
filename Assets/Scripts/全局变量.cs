@@ -44,6 +44,11 @@ public class 全局变量
 
 	public static List<玩家数据> 所有玩家数据表 = new List<玩家数据>();
 
+	public static 轮回进度类 轮回进度;
+
+	// 远程配置（蓝奏云式软校验）地址，与验证 url 相互独立，绝不改动 url
+	public static string 远程配置地址 = "https://example.com/remote_config.txt";
+
 	public static int 横向山贼数量 = 20;
 
 	public static int 竖向山贼数量 = 20;

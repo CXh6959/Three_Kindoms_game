@@ -78,6 +78,10 @@ public class 将领功能 : MonoBehaviour
 		将领实例化星星();
 		将领实例化血条信息();
 		将领实例化打击特效();
+		if (GetComponent<技能战斗组件>() == null)
+		{
+			base.gameObject.AddComponent<技能战斗组件>();
+		}
 		if (兵种索引 != -1)
 		{
 			double 兵种 = 全局兵种库.属性表[兵种索引].兵种;
@@ -100,36 +104,69 @@ public class 将领功能 : MonoBehaviour
 
 	public double 扣除血量(double 要扣除的血量)
 	{
+		string 伤害类型 = "physical";
+		if (攻击我的兵种索引 >= 0 && 攻击我的兵种索引 < 全局兵种库.属性表.Count && 全局兵种库.属性表[攻击我的兵种索引].ID == 305.0)
+		{
+			伤害类型 = "fire";
+		}
+		return 扣除血量(要扣除的血量, 伤害类型, true, 被攻击的将领脚本);
+	}
+
+	public double 扣除技能伤害(double 要扣除的血量, string 伤害类型)
+	{
+		return 扣除血量(要扣除的血量, 伤害类型, false, null);
+	}
+
+	public double 扣除普通特殊伤害(double 要扣除的血量, string 伤害类型)
+	{
+		return 扣除血量(要扣除的血量, 伤害类型, true, null);
+	}
+
+	private double 扣除血量(double 要扣除的血量, string 伤害类型, bool 普通攻击, 将领功能 攻击者)
+	{
+		if (本将领信息 == null || 本将领信息.详细信息 == null || 本将领信息.详细信息.剩余兵力 <= 0.0)
+		{
+			return 0.0;
+		}
+		技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+		if (技能组件 != null)
+		{
+			要扣除的血量 = 技能组件.处理伤害(要扣除的血量, 伤害类型, 普通攻击, !普通攻击);
+		}
 		int num = (int)本将领信息.详细信息.身份;
-		if (攻击我的兵种索引 != -1 && 兵种索引 != -1)
+		if (普通攻击 && 攻击我的兵种索引 != -1 && 兵种索引 != -1 && num >= 0 && num < 全局变量.所有玩家数据表.Count)
 		{
 			if (全局变量.所有玩家数据表[num].是否格挡(全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[攻击我的兵种索引].兵种))
 			{
-				UnityEngine.Debug.Log("格挡");
-				将领显示挡特效();
+				将领显示挡特效安全();
 				要扣除的血量 = 0.0;
 			}
 			if (全局变量.所有玩家数据表[num].是否闪避(全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[攻击我的兵种索引].兵种))
 			{
-				UnityEngine.Debug.Log("闪避");
-				将领显示闪特效();
+				将领显示闪特效安全();
 				要扣除的血量 = 0.0;
 			}
 		}
-		if (本将领信息.详细信息.剩余兵力 - 要扣除的血量 < 0.0)
+		要扣除的血量 = Mathf.Clamp((float)要扣除的血量, 0f, (float)本将领信息.详细信息.剩余兵力);
+		if (要扣除的血量 <= 0.0)
 		{
-			要扣除的血量 = 本将领信息.详细信息.剩余兵力;
+			return 0.0;
 		}
-		if (num == 全局变量.本机身份)
+		if (战斗系统脚本对象 != null && 兵种索引 >= 0 && 兵种索引 < 全局兵种库.属性表.Count)
 		{
-			战斗系统脚本对象.记录损失兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
+			if (num == 全局变量.本机身份) 战斗系统脚本对象.记录损失兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
+			else 战斗系统脚本对象.记录击杀兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
 		}
-		else
+		本将领信息.详细信息.剩余兵力 -= 要扣除的血量;
+		if (本将领信息.详细信息.剩余兵力 <= 0.0 && 技能组件 != null && 技能组件.尝试复生())
 		{
-			战斗系统脚本对象.记录击杀兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
+			if (战斗系统脚本对象 != null)
+			{
+				if (本将领信息.详细信息.坑位颜色 == 0.0) 战斗系统脚本对象.攻方兵力 += 本将领信息.详细信息.剩余兵力;
+				else if (本将领信息.详细信息.坑位颜色 == 1.0) 战斗系统脚本对象.守方兵力 += 本将领信息.详细信息.剩余兵力;
+			}
 		}
-		本将领信息.详细信息.剩余兵力 = 本将领信息.详细信息.剩余兵力 - 要扣除的血量;
-		if (本将领信息.详细信息.剩余兵力 < 0.0)
+		else if (本将领信息.详细信息.剩余兵力 <= 0.0)
 		{
 			本将领信息.详细信息.剩余兵力 = 0.0;
 			本将领信息.将领配兵.数量 = 0.0;
@@ -139,56 +176,108 @@ public class 将领功能 : MonoBehaviour
 		{
 			本将领信息.将领配兵.数量 = 本将领信息.详细信息.剩余兵力;
 		}
-		if (num == 全局变量.本机身份)
+		if (num == 全局变量.本机身份 && 第几个封地 >= 0 && 第几个封地 < 全局变量.所有玩家数据表[全局变量.本机身份].封地信息表.Count && 兵种索引 >= 0)
 		{
-			double num2 = 要扣除的血量 * 0.3;
-			if (战斗系统脚本对象.战场类型 == 0)
-			{
-				num2 = 0.0;
-			}
-			double 添加数量 = Mathf.Floor((float)(要扣除的血量 - num2));
-			全局变量.所有玩家数据表[全局变量.本机身份].封地信息表[第几个封地].添加伤兵((int)本将领信息.将领配兵.ID, 添加数量);
+			double 伤兵 = 要扣除的血量 * (战斗系统脚本对象 != null && 战斗系统脚本对象.战场类型 == 0 ? 0.0 : 0.7);
+			全局变量.所有玩家数据表[全局变量.本机身份].封地信息表[第几个封地].添加伤兵((int)全局兵种库.属性表[兵种索引].ID, Mathf.Floor((float)伤兵));
 		}
-		更新显示统兵();
-		if (本将领信息.详细信息.坑位颜色 == 0.0)
+		更新显示统兵安全();
+		if (战斗系统脚本对象 != null)
 		{
-			战斗系统脚本对象.攻方兵力 -= 要扣除的血量;
+			if (本将领信息.详细信息.坑位颜色 == 0.0) 战斗系统脚本对象.攻方兵力 -= 要扣除的血量;
+			else if (本将领信息.详细信息.坑位颜色 == 1.0) 战斗系统脚本对象.守方兵力 -= 要扣除的血量;
 		}
-		else if (本将领信息.详细信息.坑位颜色 == 1.0)
+		if (技能组件 != null) 技能组件.受击后(攻击者);
+		显示伤害安全(要扣除的血量);
+		检查血量情况安全();
+		return 要扣除的血量;
+	}
+	public bool 是否存活()
+	{
+		return 本将领信息 != null && 本将领信息.详细信息 != null && 本将领信息.详细信息.剩余兵力 > 0.0;
+	}
+
+	public double 获取最大兵力()
+	{
+		if (本将领信息 == null || 本将领信息.将领属性 == null || 本将领信息.将领属性.最终属性 == null)
 		{
-			战斗系统脚本对象.守方兵力 -= 要扣除的血量;
+			return 0.0;
 		}
-		if (已被攻击 == 0 && !打击特效对象.activeSelf)
+		double max = 本将领信息.将领属性.最终属性.统兵;
+		return max > 0.0 ? max : 原本带兵;
+	}
+
+	public void 恢复兵力(double 数量)
+	{
+		if (!是否存活() || 数量 <= 0.0)
 		{
-			打击特效对象.SetActive(value: true);
+			return;
+		}
+		double old = 本将领信息.详细信息.剩余兵力;
+		本将领信息.详细信息.剩余兵力 = Mathf.Min((float)获取最大兵力(), (float)(old + 数量));
+		本将领信息.将领配兵.数量 = 本将领信息.详细信息.剩余兵力;
+		if (战斗系统脚本对象 != null)
+		{
+			double delta = 本将领信息.详细信息.剩余兵力 - old;
+			if (本将领信息.详细信息.坑位颜色 == 0.0) 战斗系统脚本对象.攻方兵力 += delta;
+			else if (本将领信息.详细信息.坑位颜色 == 1.0) 战斗系统脚本对象.守方兵力 += delta;
+		}
+		更新显示统兵安全();
+	}
+
+	private void 将领显示挡特效安全()
+	{
+		if (挡特效对象 != null) 将领显示挡特效();
+	}
+
+	private void 将领显示闪特效安全()
+	{
+		if (闪特效对象 != null) 将领显示闪特效();
+	}
+
+	private void 更新显示统兵安全()
+	{
+		if (统兵对象 != null && 本将领信息 != null && 本将领信息.详细信息 != null)
+		{
+			统兵对象.text = 本将领信息.详细信息.剩余兵力.ToString();
+		}
+	}
+
+	private void 显示伤害安全(double 伤害)
+	{
+		if (战斗系统脚本对象 == null || 战斗系统脚本对象.伤害显示缓存表 == null) return;
+		if (打击特效对象 != null && 已被攻击 == 0 && !打击特效对象.activeSelf)
+		{
+			打击特效对象.SetActive(true);
 			Invoke("将领隐藏打击特效", 0.3f);
 		}
-		foreach (GameObject item in 战斗系统脚本对象.伤害显示缓存表)
+		for (int i = 0; i < 战斗系统脚本对象.伤害显示缓存表.Count; i++)
 		{
-			if (!item.activeSelf)
+			GameObject item = 战斗系统脚本对象.伤害显示缓存表[i];
+			if (item != null && !item.activeSelf)
 			{
-				item.SetActive(value: true);
-				float num3 = UnityEngine.Random.Range(-2f, 2f);
-				item.transform.position = new Vector2(base.transform.position.x, base.transform.position.y + num3 * 0.5f);
-				item.transform.GetChild(0).GetChild(0).GetComponent<Text>()
-					.text = "-" + 要扣除的血量.ToString();
-					break;
+				item.SetActive(true);
+				item.transform.position = new Vector2(transform.position.x, transform.position.y + UnityEngine.Random.Range(-1f, 1f));
+				if (item.transform.childCount > 0 && item.transform.GetChild(0).childCount > 0)
+				{
+					Text text = item.transform.GetChild(0).GetChild(0).GetComponent<Text>();
+					if (text != null) text.text = "-" + 伤害.ToString();
 				}
+				break;
 			}
-			if (TIME.getTime() - 攻击计时 > 被攻击间隔)
-			{
-				攻击计时 = TIME.getTime();
-				已被攻击 = 0;
-			}
-			else
-			{
-				已被攻击++;
-			}
-			检查血量情况();
-			return 要扣除的血量;
 		}
+		已被攻击++;
+	}
 
-		private double 获取最终攻击力()
+	private void 检查血量情况安全()
+	{
+		if (血条位置对象 != null && 原本带兵 > 0.0)
+		{
+			检查血量情况();
+		}
+	}
+
+	private double 获取最终攻击力()
 		{
 			double num = 0.0;
 			double num2 = 0.0;
@@ -204,6 +293,11 @@ public class 将领功能 : MonoBehaviour
 			num6 = 全局变量.所有玩家数据表[index].获取指定状态加成("攻击") / 100.0;
 			num7 = 全局变量.所有玩家数据表[index].基础信息.攻击类称号加成() / 100.0;
 			double 攻击 = 本将领信息.将领属性.最终属性.攻击;
+			技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+			if (技能组件 != null)
+			{
+				攻击 *= 技能组件.获取攻击倍率();
+			}
 			if (num2 > 2.0)
 			{
 				num2 = 0.0;
@@ -223,7 +317,8 @@ public class 将领功能 : MonoBehaviour
 				num3 = 职业加成.攻击类加成(本将领信息.将领属性.初始属性.职业, 全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[num9].兵种) / 100.0;
 				num5 = 兵种克制.攻击类加成(本将领信息.将领属性.初始属性.职业, 全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[num9].兵种) / 100.0;
 			}
-			return (攻击 * 0.05 + num4) * (1.0 + num + num2 + num3) * (1.0 + num5 + num8) * (1.0 + num6 + num7);
+			double 特殊兵种倍率 = 全局兵种库.属性表[兵种索引].ID == 405.0 ? 1.2 : 1.0;
+			return (攻击 * 0.05 + num4) * (1.0 + num + num2 + num3) * (1.0 + num5 + num8) * (1.0 + num6 + num7) * 特殊兵种倍率;
 		}
 
 		private double 获取最终防御力()
@@ -247,6 +342,11 @@ public class 将领功能 : MonoBehaviour
 				num2 = 0.0;
 			}
 			double 防御 = 被攻击的将领脚本.本将领信息.将领属性.最终属性.防御;
+			技能战斗组件 被攻击技能组件 = 被攻击的将领脚本.GetComponent<技能战斗组件>();
+			if (被攻击技能组件 != null)
+			{
+				防御 *= 被攻击技能组件.获取防御倍率();
+			}
 			int num9 = 被攻击的将领脚本.兵种索引;
 			if (num9 != -1)
 			{
@@ -254,7 +354,8 @@ public class 将领功能 : MonoBehaviour
 				num3 = 职业加成.防御类加成(被攻击的将领脚本.本将领信息.将领属性.初始属性.职业, 全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[num9].兵种) / 100.0;
 				num5 = 兵种克制.防御类加成(被攻击的将领脚本.本将领信息.将领属性.初始属性.职业, 全局兵种库.属性表[兵种索引].兵种, 全局兵种库.属性表[num9].兵种) / 100.0;
 			}
-			return (防御 * 0.05 + num4) * (1.0 + num + num2 + num3) * (1.0 + num5 + num8) * (1.0 + num6 + num7);
+			double 特殊兵种倍率 = num9 != -1 && 全局兵种库.属性表[num9].ID == 405.0 ? 1.2 : 1.0;
+			return (防御 * 0.05 + num4) * (1.0 + num + num2 + num3) * (1.0 + num5 + num8) * (1.0 + num6 + num7) * 特殊兵种倍率;
 		}
 
 		private double 获取守方血量()
@@ -306,6 +407,11 @@ public class 将领功能 : MonoBehaviour
 				全局变量.所有玩家数据表[index].计算最终属性();
 				被攻击的将领脚本.攻击我的兵种索引 = 兵种索引;
 				double num = 被攻击的将领脚本.扣除血量(要扣除的血量);
+				技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+				if (技能组件 != null)
+				{
+					技能组件.普通攻击后();
+				}
 				int index2 = (int)被攻击的将领脚本.本将领信息.详细信息.身份;
 				int index3 = 被攻击的将领脚本.兵种索引;
 				double num2 = num * 全局兵种库.属性表[index3].攻击力 * 0.5;
@@ -490,7 +596,12 @@ public class 将领功能 : MonoBehaviour
 				float num = (float)全局变量.所有玩家数据表[index].科技信息.攻速类科技(兵种) / 100f;
 				float num2 = (float)全局变量.所有玩家数据表[index].基础信息.攻速类称号加成() / 100f;
 				float num3 = (float)全局变量.所有玩家数据表[index].获取指定状态加成("攻击速度") / 100f;
-				float num4 = 攻击速度 * (1f + num + num2 + num3);
+			float num4 = 攻击速度 * (1f + num + num2 + num3);
+			技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+			if (技能组件 != null)
+			{
+				num4 *= 技能组件.获取攻速倍率();
+			}
 				float num5 = 4f / (60f / num4);
 				num5 *= Time.deltaTime;
 				进度条位置对象.localPosition = Vector2.MoveTowards(进度条位置对象.localPosition, new Vector2(3f, 0.36f), num5);
@@ -520,9 +631,22 @@ public class 将领功能 : MonoBehaviour
 						break;
 					}
 					更新显示统兵();
-					if (检查攻击进度())
-					{
-						int num = 寻找目标();
+						if (检查攻击进度())
+						{
+							技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+							if (技能组件 != null && 技能组件.攻击前尝试施放技能())
+							{
+								进度条位置对象.localPosition = new Vector2(0f, 0.36f);
+								yield return null;
+								continue;
+							}
+							if (技能组件 != null && 技能组件.尝试特殊普通攻击())
+							{
+								进度条位置对象.localPosition = new Vector2(0f, 0.36f);
+								yield return null;
+								continue;
+							}
+							int num = 寻找目标();
 						if (num != -1)
 						{
 							if (第一次不攻击 == 0)

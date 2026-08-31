@@ -57,12 +57,17 @@ public class 全局任务脚本 : MonoBehaviour
 	private void Start()
 	{
 		UnityEngine.Debug.Log("任务初始化");
+		全局变量.提示类 = 提示类对象;
+		成就系统.检查轮回成就();
+		if (!string.IsNullOrEmpty(全局变量.远程配置地址))
+		{
+			StartCoroutine(远程配置.拉取配置(全局变量.远程配置地址));
+		}
 		附近山贼.生成山贼数据列表();
 		StartCoroutine(检测军情列表());
 		StartCoroutine(刷新大地图列表());
 		StartCoroutine(刷新基础信息());
 		StartCoroutine(AI推城());
-		全局变量.提示类 = 提示类对象;
 		UnityEngine.Debug.Log("初始化结束");
 	}
 
@@ -336,11 +341,16 @@ public class 全局任务脚本 : MonoBehaviour
 						要创建的战斗地图对象 = UnityEngine.Object.Instantiate(全局变量.山贼战斗场景pre);
 						要创建的战斗地图对象.transform.SetParent(战斗地图列表.transform);
 					}
-					else if (全局变量.军情列表[i].战场类型 == 1)
-					{
-						要创建的战斗地图对象 = UnityEngine.Object.Instantiate(全局变量.城池战斗场景pre);
-						要创建的战斗地图对象.transform.SetParent(战斗地图列表.transform);
-					}
+						else if (全局变量.军情列表[i].战场类型 == 1)
+						{
+							要创建的战斗地图对象 = UnityEngine.Object.Instantiate(全局变量.城池战斗场景pre);
+							要创建的战斗地图对象.transform.SetParent(战斗地图列表.transform);
+						}
+						else if (全局变量.军情列表[i].战场类型 == 2)
+						{
+							要创建的战斗地图对象 = UnityEngine.Object.Instantiate(全局变量.山贼战斗场景pre);
+							要创建的战斗地图对象.transform.SetParent(战斗地图列表.transform);
+						}
 					战斗系统脚本对象 = 要创建的战斗地图对象.transform.GetChild(0).GetChild(0).GetChild(0)
 						.GetChild(0)
 						.GetChild(0)
@@ -412,11 +422,18 @@ public class 全局任务脚本 : MonoBehaviour
 						}
 						else if (城池信息库类.规模 == 4)
 						{
-							int num6 = UnityEngine.Random.Range(200, 230);
-							for (int num7 = 0; num7 < num6; num7++)
+							if (特殊城池系统.是否特殊都城(城池信息库类))
 							{
-								int 要生成的等级5 = UnityEngine.Random.Range(90, 99);
-								list2.Add(随机一个城池驻防将领(要生成的等级5, 城池信息库类.国家));
+								list2.AddRange(特殊城池系统.生成都城驻防(城池信息库类));
+							}
+							else
+							{
+								int num6 = UnityEngine.Random.Range(200, 230);
+								for (int num7 = 0; num7 < num6; num7++)
+								{
+									int 要生成的等级5 = UnityEngine.Random.Range(90, 99);
+									list2.Add(随机一个城池驻防将领(要生成的等级5, 城池信息库类.国家));
+								}
 							}
 						}
 						int num8 = UnityEngine.Random.Range(0, 101);
@@ -424,7 +441,7 @@ public class 全局任务脚本 : MonoBehaviour
 						{
 							num8 = (int)城池信息库类.协防几率;
 						}
-						if ((double)num8 <= 城池信息库类.协防几率)
+						if (!特殊城池系统.是否特殊都城(城池信息库类) && (double)num8 <= 城池信息库类.协防几率)
 						{
 							int num9 = (int)城池信息库类.获取名将驻防数量();
 							for (int num10 = 0; num10 < num9; num10++)
@@ -457,10 +474,23 @@ public class 全局任务脚本 : MonoBehaviour
 							}
 							num12 += 5;
 						}
-						int num14 = num11 * 5;
-						战斗系统脚本对象.守方要渲染的编队将领列表.Add(list2.GetRange(num14, count3 - num14));
+							int num14 = num11 * 5;
+							战斗系统脚本对象.守方要渲染的编队将领列表.Add(list2.GetRange(num14, count3 - num14));
+						}
+						else if (全局变量.军情列表[i].战场类型 == 2)
+						{
+							List<将领信息> list3 = 轮回副本系统.生成副本守军();
+							if (list3.Count > 0)
+							{
+								战斗系统脚本对象.守方要渲染的编队将领列表.Add(list3.GetRange(0, Mathf.Min(5, list3.Count)));
+								for (int num15 = 5; num15 < list3.Count; num15 += 5)
+								{
+									int length = Mathf.Min(5, list3.Count - num15);
+									战斗系统脚本对象.守方要渲染的编队将领列表.Add(list3.GetRange(num15, length));
+								}
+							}
+						}
 					}
-				}
 				if (!全局变量.军情列表[i].已进入战场)
 				{
 					全局变量.军情列表[i].已进入战场 = true;
@@ -491,14 +521,18 @@ public class 全局任务脚本 : MonoBehaviour
 		List<将领信息> list = (国家信息库类 == null) ? 全局变量.所有玩家数据表[2].封地信息表[0].将领信息表 : 全局变量.所有玩家数据表[国家信息库类.国王].封地信息表[0].将领信息表;
 		List<将领信息> list2 = new List<将领信息>();
 		int count = list.Count;
-		for (int i = 0; i < count; i++)
-		{
-			if (list[i].详细信息.状态 != 0.0)
+			for (int i = 0; i < count; i++)
 			{
-				continue;
-			}
-			bool flag = true;
-			if (list[i].将领属性.初始属性.系列 != "名将")
+				if (list[i].详细信息.状态 != 0.0)
+				{
+					continue;
+				}
+				bool flag = true;
+				if (!全局将领库.是否解锁系列将(list[i].将领属性.初始属性.系列))
+				{
+					flag = false;
+				}
+				if (list[i].将领属性.初始属性.系列 != "名将")
 			{
 				if (规模 < 3)
 				{
@@ -569,7 +603,8 @@ public class 全局任务脚本 : MonoBehaviour
 		{
 			全局变量.所有玩家数据表[num].科技信息.统帅能力 = 5.0;
 		}
-		将领属性库类 将领属性库类 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, 7));
+			int 当前轮回可用ID上限 = Mathf.Clamp(轮回系统.当前轮回数, 1, 3) * 2;
+			将领属性库类 将领属性库类 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, Mathf.Min(6, 当前轮回可用ID上限) + 1));
 		if (将领属性库类 != null)
 		{
 			将领属性库类.获取随机属性();

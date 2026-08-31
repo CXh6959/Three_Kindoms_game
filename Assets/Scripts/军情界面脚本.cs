@@ -65,11 +65,15 @@ public class 军情界面脚本 : MonoBehaviour
 					component.text = "【消灭】" + 全局变量.军情列表[num].队列将领列表[0].将领属性.初始属性.名字 + "消灭" + 山贼属性信息.等级.ToString() + "级山贼(" + 全局变量.军情列表[num].坐标x.ToString() + "," + 全局变量.军情列表[num].坐标y.ToString() + ")";
 				}
 			}
-			else if (全局变量.军情列表[num].战场类型 == 1)
-			{
-				城池信息库类 城池信息库类 = 所有城池界面脚本.根据坐标获取指定城池(全局变量.军情列表[num].坐标x, 全局变量.军情列表[num].坐标y);
-				component.text = "【攻占】" + 全局变量.军情列表[num].队列将领列表[0].将领属性.初始属性.名字 + "攻占" + 城池信息库类.名称 + "(" + 全局变量.军情列表[num].坐标x.ToString() + "," + 全局变量.军情列表[num].坐标y.ToString() + ")";
-			}
+				else if (全局变量.军情列表[num].战场类型 == 1)
+				{
+					城池信息库类 城池信息库类 = 所有城池界面脚本.根据坐标获取指定城池(全局变量.军情列表[num].坐标x, 全局变量.军情列表[num].坐标y);
+					component.text = "【攻占】" + 全局变量.军情列表[num].队列将领列表[0].将领属性.初始属性.名字 + "攻占" + 城池信息库类.名称 + "(" + 全局变量.军情列表[num].坐标x.ToString() + "," + 全局变量.军情列表[num].坐标y.ToString() + ")";
+				}
+				else if (全局变量.军情列表[num].战场类型 == 2)
+				{
+					component.text = "【轮回副本】" + 全局变量.军情列表[num].队列将领列表[0].将领属性.初始属性.名字;
+				}
 			Text component2 = 军情列表.transform.GetChild(i).GetChild(2).GetComponent<Text>();
 			Text component3 = 军情列表.transform.GetChild(i).GetChild(3).GetComponent<Text>();
 			军情列表.transform.GetChild(i).GetChild(3).gameObject.SetActive(value: false);

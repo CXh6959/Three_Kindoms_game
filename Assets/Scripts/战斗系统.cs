@@ -218,6 +218,15 @@ public class 战斗系统 : MonoBehaviour
 					被攻击的城池.正在交战 = false;
 				}
 			}
+			else if (战场类型 == 2)
+			{
+				UnityEngine.Debug.Log("轮回副本战斗结束");
+				if (守方兵力 <= 0.0)
+				{
+					轮回副本系统.通关副本(攻身份);
+				}
+				战斗结束 = true;
+			}
 			else
 			{
 				UnityEngine.Debug.Log("山贼战斗结束");

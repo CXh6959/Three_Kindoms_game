@@ -18,6 +18,8 @@ public class 将领属性库类
 
 	public string 系列;
 
+	public string 攻击类型 = "";
+
 	public double 成长;
 
 	public double 突围;
@@ -193,6 +195,23 @@ public class 将领属性库类
 		转换类型职业(t类型名, t职业名);
 		系列 = "名将";
 		获取随机属性();
+	}
+
+	public void 快捷生成神将(double tID, string t名字, string t类型名, string t职业名)
+	{
+		ID = tID;
+		名字 = t名字;
+		头像特效 = 6.0;
+		国家 = "";
+		突围 = 99.0;
+		成长 = 99.0;
+		转换类型职业(t类型名, t职业名);
+		系列 = "神将";
+		获取随机属性();
+		// 神将基础三维拉满（高于尊将），即便 获取随机属性 命中默认档也足够强
+		武力 = UnityEngine.Random.Range(140, 151);
+		智力 = UnityEngine.Random.Range(140, 151);
+		统帅 = UnityEngine.Random.Range(140, 151);
 	}
 
 	public void 获取随机属性()

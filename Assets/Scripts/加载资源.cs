@@ -17,6 +17,8 @@ public static class 加载资源
 		全局变量.所有头像资源表.AddRange(collection5);
 		Sprite[] collection6 = Resources.LoadAll<Sprite>("将领头像/普通");
 		全局变量.所有头像资源表.AddRange(collection6);
+		Sprite[] collection神将 = Resources.LoadAll<Sprite>("将领头像/神将");
+		全局变量.所有头像资源表.AddRange(collection神将);
 		全局变量.书院头像资源表 = Resources.LoadAll<Sprite>("建筑头像/书院");
 		全局变量.农田头像资源表 = Resources.LoadAll<Sprite>("建筑头像/农田");
 		全局变量.大厅头像资源表 = Resources.LoadAll<Sprite>("建筑头像/大厅");
