@@ -78,6 +78,10 @@ public class 将领功能 : MonoBehaviour
 		将领实例化星星();
 		将领实例化血条信息();
 		将领实例化打击特效();
+		if (全局技能库.获取将领技能(本将领信息.将领属性.初始属性.名字) != null)
+		{
+			base.gameObject.AddComponent<技能战斗组件>();
+		}
 		if (兵种索引 != -1)
 		{
 			double 兵种 = 全局兵种库.属性表[兵种索引].兵种;

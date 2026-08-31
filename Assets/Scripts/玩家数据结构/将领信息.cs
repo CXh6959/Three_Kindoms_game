@@ -16,6 +16,8 @@ namespace 玩家数据结构
 
 		public 将领培养 将领培养;
 
+		public int 阶位;
+
 		public void 生成指定ID将领(double 要生成的将领ID)
 		{
 			将领属性库类 将领属性库类 = 全局将领库.查询指定ID的将领数据(要生成的将领ID);

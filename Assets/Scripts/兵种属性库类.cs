@@ -25,4 +25,6 @@ public class 兵种属性库类
 	public double 需要铜钱;
 
 	public double 需要时间;
+
+	public string 特性 = "";
 }

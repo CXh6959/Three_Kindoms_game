@@ -10,6 +10,8 @@ namespace 玩家数据结构
 
 		public double 黄金;
 
+		public double 元宝;
+
 		public bool 扣除铜钱(double 要扣除的数量)
 		{
 			if (铜钱 >= 要扣除的数量)
@@ -45,6 +47,16 @@ namespace 玩家数据结构
 			if (黄金 >= 要扣除的数量)
 			{
 				黄金 -= 要扣除的数量;
+				return true;
+			}
+			return false;
+		}
+
+		public bool 扣除元宝(double 要扣除的数量)
+		{
+			if (元宝 >= 要扣除的数量)
+			{
+				元宝 -= 要扣除的数量;
 				return true;
 			}
 			return false;
