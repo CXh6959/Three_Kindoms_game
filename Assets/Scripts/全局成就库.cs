@@ -25,6 +25,7 @@ public class 全局成就库
 
 	public static void 初始化成就库()
 	{
+		属性表.Clear();
 		// 需求八：轮回里程碑成就（号令类神君王仅通过成就获得，需求三.1）
 		属性表.Add(new 成就定义
 		{

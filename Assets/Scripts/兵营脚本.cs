@@ -27,7 +27,17 @@ public class 兵营脚本 : MonoBehaviour
 		int num = 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].获取建筑头像索引();
 		头像对象.sprite = 全局变量.书院头像资源表[num];
 		名字等级对象.text = 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].获取建筑等级文本();
-		for (int i = 0; i < 4; i++)
+		int 显示兵种数量 = 4;
+		bool 特殊兵种已开启 = 轮回系统.当前轮回数 >= 10;
+		if (兵种列表对象.transform.childCount > 4)
+		{
+			兵种列表对象.transform.GetChild(4).gameObject.SetActive(特殊兵种已开启);
+		}
+		if (特殊兵种已开启 && 兵种列表对象.transform.childCount > 4)
+		{
+			显示兵种数量 = 5;
+		}
+		for (int i = 0; i < 显示兵种数量; i++)
 		{
 			int num2 = (兵营类型 - 3) * 100 + (i + 1);
 			兵种属性库类 兵种属性库类 = 全局兵种库.查询指定ID的数据(num2);
@@ -45,7 +55,7 @@ public class 兵营脚本 : MonoBehaviour
 								.gameObject;
 								gameObject2.SetActive(value: false);
 								gameObject.SetActive(value: false);
-								if (全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].等级 > i * 3)
+									if ((i == 4 && 特殊兵种已开启) || (i < 4 && 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].等级 > i * 3))
 								{
 									gameObject.SetActive(value: true);
 									gameObject.transform.GetComponent<Text>().text = "(数量" + num4.ToString() + ")";
@@ -75,7 +85,12 @@ public class 兵营脚本 : MonoBehaviour
 											public void 招募选中兵种()
 											{
 												int num = 0;
-												for (int i = 0; i < 4; i++)
+										int 可选兵种数量 = 4;
+										if (轮回系统.当前轮回数 >= 10 && 兵种列表对象.transform.childCount > 4)
+										{
+											可选兵种数量 = 5;
+										}
+										for (int i = 0; i < 可选兵种数量; i++)
 												{
 													if (兵种列表对象.transform.GetChild(i).GetChild(16).gameObject.activeSelf)
 													{

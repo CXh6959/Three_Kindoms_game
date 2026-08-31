@@ -7,5 +7,7 @@ namespace 玩家数据结构
 		public bool 已完成;
 
 		public bool 已领取;
+
+		public long 完成时间;
 	}
 }

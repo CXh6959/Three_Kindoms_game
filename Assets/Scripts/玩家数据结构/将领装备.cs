@@ -21,6 +21,11 @@ namespace 玩家数据结构
 
 		public List<炼魂属性> 炼魂属性 = new List<炼魂属性>();
 
+		public bool 是否可交易
+		{
+			get { return 装备信息 != null && 装备信息.是否可交易; }
+		}
+
 		public void 生成指定装备(string 装备名字)
 		{
 			装备信息 = 全局装备库.获取指定名字的装备(装备名字);

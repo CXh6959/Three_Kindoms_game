@@ -20,6 +20,14 @@ public class 全局商城库
 
 	public static void 初始化商城库()
 	{
+		热卖商品列表.Clear();
+		特价商品列表.Clear();
+		装备商品列表.Clear();
+		生产商品列表.Clear();
+		加速商品列表.Clear();
+		宝物商品列表.Clear();
+		宝箱商品列表.Clear();
+		其他商品列表.Clear();
 		热卖商品列表.Add(new 商品属性类("将神魂", 20.0, 0.0));
 		热卖商品列表.Add(new 商品属性类("皇榜", 1500.0, 0.0));
 		热卖商品列表.Add(new 商品属性类("招贤令", 10.0, 0.0));
@@ -146,5 +154,19 @@ public class 全局商城库
 			}
 		}
 		return null;
+	}
+
+	public static List<商品属性类> 获取全部商品()
+	{
+		List<商品属性类> result = new List<商品属性类>();
+		result.AddRange(热卖商品列表);
+		result.AddRange(特价商品列表);
+		result.AddRange(装备商品列表);
+		result.AddRange(生产商品列表);
+		result.AddRange(加速商品列表);
+		result.AddRange(宝物商品列表);
+		result.AddRange(宝箱商品列表);
+		result.AddRange(其他商品列表);
+		return result;
 	}
 }

@@ -191,18 +191,19 @@ public class 招募将领 : MonoBehaviour
 								}
 								else
 								{
-									将领属性库类 将领属性库类2 = new 将领属性库类();
-									if (随机类型 == 3)
-									{
-										将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, 9));
-									}
-									if (随机类型 == 2)
-									{
-										将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, 7));
-									}
-									if (随机类型 == 1)
-									{
-										将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, 5));
+						将领属性库类 将领属性库类2 = new 将领属性库类();
+						int 当前轮回可用ID上限 = Mathf.Clamp(轮回系统.当前轮回数, 1, 4) * 2;
+						if (随机类型 == 3)
+						{
+							将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, Mathf.Min(8, 当前轮回可用ID上限) + 1));
+						}
+						if (随机类型 == 2)
+						{
+							将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, Mathf.Min(6, 当前轮回可用ID上限) + 1));
+						}
+						if (随机类型 == 1)
+						{
+							将领属性库类2 = 全局将领库.查询指定ID的将领数据(UnityEngine.Random.Range(1, Mathf.Min(4, 当前轮回可用ID上限) + 1));
 									}
 									将领属性库类2.获取随机属性();
 									将领信息.生成将领数据(将领属性库类2);

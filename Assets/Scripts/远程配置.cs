@@ -21,6 +21,12 @@ public class 远程配置
 
 	public static int 神将碎片校验值;
 
+	public static int 远程将神珠数量 = -1;
+
+	public static int 远程神将碎片数量 = -1;
+
+	public static long 材料版本号;
+
 	public static bool 已加载;
 
 	// 约定的远程文件格式（每行 "键=值"）：
@@ -28,6 +34,9 @@ public class 远程配置
 	//   发放版本=5
 	//   将神珠校验=999
 	//   神将碎片校验=9999
+	//   将神珠数量=0
+	//   神将碎片数量=0
+	//   材料版本=1
 	public static IEnumerator 拉取配置(string 地址)
 	{
 		if (string.IsNullOrEmpty(地址))
@@ -41,6 +50,8 @@ public class 远程配置
 			{
 				解析(req.downloadHandler.text);
 				已加载 = true;
+				同步联网材料();
+				尝试发放元宝();
 			}
 			else
 			{
@@ -83,6 +94,15 @@ public class 远程配置
 					case "神将碎片校验":
 						神将碎片校验值 = (int)v;
 						break;
+					case "将神珠数量":
+						远程将神珠数量 = Mathf.Max(0, (int)v);
+						break;
+					case "神将碎片数量":
+						远程神将碎片数量 = Mathf.Max(0, (int)v);
+						break;
+					case "材料版本":
+						材料版本号 = v;
+						break;
 				}
 			}
 		}
@@ -90,6 +110,24 @@ public class 远程配置
 		{
 			UnityEngine.Debug.LogWarning("远程配置解析失败: " + e.Message);
 		}
+	}
+
+	private static void 同步联网材料()
+	{
+		if (全局变量.轮回进度 == null || 材料版本号 <= 全局变量.轮回进度.材料版本)
+		{
+			return;
+		}
+		if (远程将神珠数量 >= 0)
+		{
+			全局变量.轮回进度.将神珠数量 = 远程将神珠数量;
+		}
+		if (远程神将碎片数量 >= 0)
+		{
+			全局变量.轮回进度.神将碎片数量 = 远程神将碎片数量;
+		}
+		全局变量.轮回进度.材料版本 = 材料版本号;
+		全局变量.轮回进度.保存();
 	}
 
 	// 幂等发放元宝：仅当远程"发放版本号"大于本地"上次发放版本"时发放一次
@@ -109,6 +147,7 @@ public class 远程配置
 			return;
 		}
 		全局变量.所有玩家数据表[本机身份].财产信息.元宝 += 元宝发放额度;
+		全局变量.轮回进度.元宝余额 = 全局变量.所有玩家数据表[本机身份].财产信息.元宝;
 		全局变量.轮回进度.上次发放版本 = 发放版本号;
 		全局变量.轮回进度.保存();
 		if (全局变量.提示类 != null)
