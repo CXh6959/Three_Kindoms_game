@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 namespace 玩家数据结构
@@ -27,6 +26,8 @@ namespace 玩家数据结构
 		public int 将领ID标识 = 1;
 
 		public int 封地ID标识 = 1;
+
+		private bool 已提示将领超限;
 
 		public void 初始化一个玩家(string 玩家名, string 国家名)
 		{
@@ -479,11 +480,15 @@ namespace 玩家数据结构
 					num++;
 				}
 			}
-			if (num > 25 && (double)num > 25.0 + 基础信息.将领数扩容数量)
+			bool 将领超限 = num > 25 && (double)num > 25.0 + 基础信息.将领数扩容数量;
+			if (将领超限 && !已提示将领超限)
 			{
-				全局变量.提示类.显示信息("将领数量异常!");
-				Directory.Delete(Application.persistentDataPath, recursive: true);
-				Application.Quit();
+				已提示将领超限 = true;
+				UnityEngine.Debug.LogWarning("将领数量超过当前容量上限，请扩容或遣散多余将领。");
+			}
+			else if (!将领超限)
+			{
+				已提示将领超限 = false;
 			}
 			return num;
 		}

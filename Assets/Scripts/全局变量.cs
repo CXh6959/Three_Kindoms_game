@@ -46,8 +46,8 @@ public class 全局变量
 
 	public static 轮回进度类 轮回进度;
 
-	// 远程配置（蓝奏云式软校验）地址，与验证 url 相互独立，绝不改动 url
-	public static string 远程配置地址 = "https://example.com/remote_config.txt";
+	// 发布时配置真实的 HTTPS 地址；留空时按纯单机模式运行。
+	public static string 远程配置地址 = "";
 
 	public static int 横向山贼数量 = 20;
 

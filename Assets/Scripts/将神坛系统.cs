@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using 玩家数据结构;
+using 技能系统;
 
 public class 神将图鉴条目
 {
@@ -282,63 +282,5 @@ public static class 将神坛系统
 		{
 			全局变量.提示类.显示信息(message);
 		}
-	}
-}
-
-public class 将神坛脚本 : MonoBehaviour
-{
-	public Transform 图鉴列表对象;
-	public GameObject 图鉴条目预制体;
-	public Text 技能说明;
-	public Text 材料说明;
-	public Button 合成按钮;
-	public Button 升阶按钮;
-	private string 当前神将名;
-
-	public void 刷新图鉴()
-	{
-		List<神将图鉴条目> list = 将神坛系统.获取图鉴();
-		if (图鉴列表对象 == null || 图鉴条目预制体 == null)
-		{
-			return;
-		}
-		for (int i = 图鉴列表对象.childCount - 1; i >= 0; i--)
-		{
-			UnityEngine.Object.Destroy(图鉴列表对象.GetChild(i).gameObject);
-		}
-		for (int j = 0; j < list.Count; j++)
-		{
-			GameObject item = UnityEngine.Object.Instantiate(图鉴条目预制体, 图鉴列表对象);
-			Text label = item.GetComponentInChildren<Text>();
-			if (label != null)
-			{
-				label.text = list[j].名字 + (list[j].已拥有 ? " [已拥有]" : "");
-			}
-		}
-	}
-
-	public void 选择神将(string 神将名)
-	{
-		当前神将名 = 神将名;
-		if (技能说明 != null)
-		{
-			技能说明.text = 将神坛系统.获取当前阶位说明(神将名);
-		}
-		if (材料说明 != null)
-		{
-			材料说明.text = 将神坛系统.获取合成材料说明(神将名);
-		}
-	}
-
-	public void 点击合成()
-	{
-		将神坛系统.合成(当前神将名);
-		刷新图鉴();
-	}
-
-	public void 点击升阶()
-	{
-		将神坛系统.升阶(当前神将名);
-		刷新图鉴();
 	}
 }
