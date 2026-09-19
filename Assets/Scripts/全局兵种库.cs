@@ -399,6 +399,10 @@ public class 全局兵种库
 
 	public static int 查询指定兵种的图片(string 兵种名字)
 	{
+		if (全局变量.所有兵种图片资源表 == null || 全局变量.所有兵种图片资源表.Length == 0)
+		{
+			return -1;
+		}
 		int num = 全局变量.所有兵种图片资源表.Length;
 		for (int i = 0; i < num; i++)
 		{
@@ -407,11 +411,23 @@ public class 全局兵种库
 				return i;
 			}
 		}
-		return -1;
+		string 回退名字 = 获取特殊兵种资源回退名(兵种名字);
+		for (int i = 0; i < num; i++)
+		{
+			if (全局变量.所有兵种图片资源表[i].name == 回退名字)
+			{
+				return i;
+			}
+		}
+		return 0;
 	}
 
 	public static int 查询指定兵种的图标(string 兵种名字)
 	{
+		if (全局变量.所有兵种图标资源表 == null || 全局变量.所有兵种图标资源表.Length == 0)
+		{
+			return -1;
+		}
 		int num = 全局变量.所有兵种图标资源表.Length;
 		for (int i = 0; i < num; i++)
 		{
@@ -420,11 +436,23 @@ public class 全局兵种库
 				return i;
 			}
 		}
-		return -1;
+		string 回退名字 = 获取特殊兵种资源回退名(兵种名字);
+		for (int i = 0; i < num; i++)
+		{
+			if (全局变量.所有兵种图标资源表[i].name == 回退名字)
+			{
+				return i;
+			}
+		}
+		return 0;
 	}
 
 	public static int 查询指定兵种的模型(string 兵种名字)
 	{
+		if (全局变量.所有兵种模型 == null || 全局变量.所有兵种模型.Length == 0)
+		{
+			return -1;
+		}
 		int num = 全局变量.所有兵种模型.Length;
 		for (int i = 0; i < num; i++)
 		{
@@ -433,6 +461,31 @@ public class 全局兵种库
 				return i;
 			}
 		}
-		return -1;
+		string 回退名字 = 获取特殊兵种资源回退名(兵种名字);
+		for (int i = 0; i < num; i++)
+		{
+			if (全局变量.所有兵种模型[i].name == 回退名字)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	private static string 获取特殊兵种资源回退名(string 兵种名字)
+	{
+		switch (兵种名字)
+		{
+		case "象骑兵":
+			return "重骑兵";
+		case "藤甲兵":
+			return "近卫兵";
+		case "火油兵":
+			return "强弩兵";
+		case "玄甲兵":
+			return "重弩车";
+		default:
+			return 兵种名字;
+		}
 	}
 }

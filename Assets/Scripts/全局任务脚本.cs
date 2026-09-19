@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using 玩家数据结构;
@@ -53,6 +52,10 @@ public class 全局任务脚本 : MonoBehaviour
 	public 招募将领 招募将领脚本对象;
 
 	private int 验证计次;
+
+	private bool 已提示说明文本变更;
+
+	private bool 已提示群号文本变更;
 
 	private void Start()
 	{
@@ -265,16 +268,16 @@ public class 全局任务脚本 : MonoBehaviour
 					全局变量.提示类.显示信息("科技数据异常,退出!");
 					Application.Quit();
 				}
-				if (全局方法类.GetStrMd5(说明文本.text) != "D443F7820FD68178345032B04856ED95")
-				{
-					Directory.Delete(Application.persistentDataPath, recursive: true);
-					Application.Quit();
-				}
-				if (全局方法类.GetStrMd5(群号文本.text) != "214BA971DFE5BF07A481DEA0A6797D58")
-				{
-					Directory.Delete(Application.persistentDataPath, recursive: true);
-					Application.Quit();
-				}
+					if (!已提示说明文本变更 && 全局方法类.GetStrMd5(说明文本.text) != "D443F7820FD68178345032B04856ED95")
+					{
+						已提示说明文本变更 = true;
+						UnityEngine.Debug.LogWarning("说明文本已变更，跳过旧版完整性校验。");
+					}
+					if (!已提示群号文本变更 && 全局方法类.GetStrMd5(群号文本.text) != "214BA971DFE5BF07A481DEA0A6797D58")
+					{
+						已提示群号文本变更 = true;
+						UnityEngine.Debug.LogWarning("群号文本已变更，跳过旧版完整性校验。");
+					}
 				刷新计时 = TIME.getTime();
 			}
 			else if (TIME.getTime() - 刷新计时 >= 1)

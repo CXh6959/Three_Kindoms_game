@@ -1,5 +1,4 @@
 using System.Collections;
-using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -28,8 +27,9 @@ public class 开始界面背景动画 : MonoBehaviour
 		全局变量.验证变量 = 1;
 		if (全局方法类.GetStrMd5(全局变量.url) != "F912BA1D275091B2F7A0BFF16A86AC9C")
 		{
-			Directory.Delete(Application.persistentDataPath, recursive: true);
-			Application.Quit();
+			UnityEngine.Debug.LogError("验证地址配置不正确，已停止联网验证；本地存档不会被删除。");
+			正在验证 = false;
+			yield break;
 		}
 		using (UnityWebRequest webRequest = UnityWebRequest.Get(全局变量.url))
 		{
