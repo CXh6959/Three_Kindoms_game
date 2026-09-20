@@ -35,6 +35,13 @@ public static class AndroidBuild
 
 		PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
 		PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
+		PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+		PlayerSettings.allowedAutorotateToPortrait = false;
+		PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+		PlayerSettings.allowedAutorotateToLandscapeLeft = true;
+		PlayerSettings.allowedAutorotateToLandscapeRight = true;
+		PlayerSettings.Android.maxAspectRatio = 2.4f;
+		PlayerSettings.Android.renderOutsideSafeArea = false;
 		EditorUserBuildSettings.buildAppBundle = false;
 
 		string projectRoot = Directory.GetParent(Application.dataPath).FullName;

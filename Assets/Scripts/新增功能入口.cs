@@ -17,12 +17,17 @@ public class 新增功能入口 : MonoBehaviour
 
 	private GameObject 界面根对象;
 	private GameObject 面板对象;
+	private GameObject 退出确认对象;
+	private RectTransform 安全区域对象;
 	private RectTransform 内容对象;
 	private Text 标题文本;
 	private Text 状态文本;
 	private Font 界面字体;
 	private string 当前神将名;
 	private int 神将页码;
+	private int 上次屏幕宽度;
+	private int 上次屏幕高度;
+	private Rect 上次安全区域;
 
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 	private static void 创建常驻入口()
@@ -54,19 +59,25 @@ public class 新增功能入口 : MonoBehaviour
 			Destroy(界面根对象);
 			界面根对象 = null;
 		}
-		if (scene.buildIndex == 1)
+		面板对象 = null;
+		退出确认对象 = null;
+		安全区域对象 = null;
+		内容对象 = null;
+		标题文本 = null;
+		状态文本 = null;
+		if (scene.buildIndex >= 0)
 		{
-			StartCoroutine(延迟创建界面());
+			StartCoroutine(延迟创建界面(scene.buildIndex == 1));
 		}
 	}
 
-	private IEnumerator 延迟创建界面()
+	private IEnumerator 延迟创建界面(bool 创建功能面板)
 	{
 		yield return null;
-		创建界面();
+		创建界面(创建功能面板);
 	}
 
-	private void 创建界面()
+	private void 创建界面(bool 创建功能面板)
 	{
 		界面字体 = 查找界面字体();
 		确保事件系统();
@@ -81,7 +92,18 @@ public class 新增功能入口 : MonoBehaviour
 		scaler.referenceResolution = new Vector2(1920f, 1080f);
 		scaler.matchWidthOrHeight = 0.5f;
 
-		Button entry = 创建按钮("功能入口", 界面根对象.transform, "功能", new Vector2(150f, 58f), new Vector2(-96f, -44f), new Vector2(1f, 1f), 强调色, 26);
+		安全区域对象 = 创建拉伸对象("安全区域", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+		应用安全区域();
+		float 退出按钮横坐标 = 创建功能面板 ? -270f : -96f;
+		Button exit = 创建按钮("退出游戏", 安全区域对象, "退出", new Vector2(150f, 58f), new Vector2(退出按钮横坐标, -44f), new Vector2(1f, 1f), 按钮色, 26);
+		exit.onClick.AddListener(打开退出确认);
+		创建退出确认界面();
+		if (!创建功能面板)
+		{
+			return;
+		}
+
+		Button entry = 创建按钮("功能入口", 安全区域对象, "功能", new Vector2(150f, 58f), new Vector2(-96f, -44f), new Vector2(1f, 1f), 强调色, 26);
 		entry.onClick.AddListener(() => 打开面板());
 
 		面板对象 = 创建拉伸对象("新增功能遮罩", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
@@ -120,10 +142,60 @@ public class 新增功能入口 : MonoBehaviour
 		面板对象.SetActive(false);
 	}
 
+	private void 创建退出确认界面()
+	{
+		退出确认对象 = 创建拉伸对象("退出确认遮罩", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
+		退出确认对象.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
+		Button 遮罩按钮 = 退出确认对象.AddComponent<Button>();
+		遮罩按钮.transition = Selectable.Transition.None;
+		遮罩按钮.onClick.AddListener(关闭退出确认);
+
+		RectTransform panel = 创建固定对象("退出确认面板", 退出确认对象.transform, new Vector2(620f, 300f), Vector2.zero, new Vector2(0.5f, 0.5f));
+		panel.gameObject.AddComponent<Image>().color = 背景色;
+		Button 阻止穿透 = panel.gameObject.AddComponent<Button>();
+		阻止穿透.transition = Selectable.Transition.None;
+
+		Text title = 创建文本("退出标题", panel, "退出游戏？", 38, TextAnchor.MiddleCenter, 文字色);
+		title.rectTransform.anchorMin = new Vector2(0f, 0.42f);
+		title.rectTransform.anchorMax = Vector2.one;
+		title.rectTransform.offsetMin = new Vector2(24f, 0f);
+		title.rectTransform.offsetMax = new Vector2(-24f, -12f);
+
+		Button cancel = 创建按钮("取消退出", panel, "取消", new Vector2(220f, 68f), new Vector2(-125f, 62f), new Vector2(0.5f, 0f), 按钮色, 28);
+		cancel.onClick.AddListener(关闭退出确认);
+		Button confirm = 创建按钮("确认退出", panel, "退出", new Vector2(220f, 68f), new Vector2(125f, 62f), new Vector2(0.5f, 0f), 强调色, 28);
+		confirm.onClick.AddListener(确认退出游戏);
+		退出确认对象.SetActive(false);
+	}
+
 	private void 创建导航按钮(RectTransform parent, string label, int index, UnityEngine.Events.UnityAction action)
 	{
 		Button button = 创建按钮(label, parent, label, new Vector2(204f, 62f), new Vector2(102f, -40f - index * 74f), new Vector2(0.5f, 1f), 按钮色, 25);
 		button.onClick.AddListener(action);
+	}
+
+	private void Update()
+	{
+		if (安全区域对象 != null && (上次屏幕宽度 != Screen.width || 上次屏幕高度 != Screen.height || 上次安全区域 != Screen.safeArea))
+		{
+			应用安全区域();
+		}
+		if (!Input.GetKeyDown(KeyCode.Escape))
+		{
+			return;
+		}
+		if (退出确认对象 != null && 退出确认对象.activeSelf)
+		{
+			关闭退出确认();
+		}
+		else if (面板对象 != null && 面板对象.activeSelf)
+		{
+			关闭面板();
+		}
+		else
+		{
+			打开退出确认();
+		}
 	}
 
 	private void 打开面板()
@@ -134,7 +206,53 @@ public class 新增功能入口 : MonoBehaviour
 
 	private void 关闭面板()
 	{
-		面板对象.SetActive(false);
+		if (面板对象 != null)
+		{
+			面板对象.SetActive(false);
+		}
+	}
+
+	private void 打开退出确认()
+	{
+		if (退出确认对象 == null)
+		{
+			return;
+		}
+		退出确认对象.transform.SetAsLastSibling();
+		退出确认对象.SetActive(true);
+	}
+
+	private void 关闭退出确认()
+	{
+		if (退出确认对象 != null)
+		{
+			退出确认对象.SetActive(false);
+		}
+	}
+
+	private static void 确认退出游戏()
+	{
+#if UNITY_EDITOR
+		UnityEditor.EditorApplication.isPlaying = false;
+#else
+		Application.Quit();
+#endif
+	}
+
+	private void 应用安全区域()
+	{
+		if (安全区域对象 == null || Screen.width <= 0 || Screen.height <= 0)
+		{
+			return;
+		}
+		Rect safeArea = Screen.safeArea;
+		安全区域对象.anchorMin = new Vector2(safeArea.xMin / Screen.width, safeArea.yMin / Screen.height);
+		安全区域对象.anchorMax = new Vector2(safeArea.xMax / Screen.width, safeArea.yMax / Screen.height);
+		安全区域对象.offsetMin = Vector2.zero;
+		安全区域对象.offsetMax = Vector2.zero;
+		上次屏幕宽度 = Screen.width;
+		上次屏幕高度 = Screen.height;
+		上次安全区域 = safeArea;
 	}
 
 	private void 显示概况()
@@ -363,7 +481,9 @@ public class 新增功能入口 : MonoBehaviour
 		标题文本.text = title;
 		for (int i = 内容对象.childCount - 1; i >= 0; i--)
 		{
-			Destroy(内容对象.GetChild(i).gameObject);
+			GameObject child = 内容对象.GetChild(i).gameObject;
+			child.SetActive(false);
+			Destroy(child);
 		}
 		状态文本.text = "";
 	}
