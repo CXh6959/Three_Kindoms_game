@@ -22,7 +22,9 @@ public class 将神坛脚本 : MonoBehaviour
 		}
 		for (int i = 图鉴列表对象.childCount - 1; i >= 0; i--)
 		{
-			Destroy(图鉴列表对象.GetChild(i).gameObject);
+			GameObject child = 图鉴列表对象.GetChild(i).gameObject;
+			child.SetActive(false);
+			Destroy(child);
 		}
 		for (int i = 0; i < list.Count; i++)
 		{

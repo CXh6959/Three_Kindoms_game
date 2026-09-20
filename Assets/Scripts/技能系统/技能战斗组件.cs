@@ -334,7 +334,7 @@ public class 技能战斗组件 : MonoBehaviour
 		else if (name == "神·徐庶")
 		{
 			清除我方负面();
-			使我方添加状态("清障", value, 0.0);
+			使我方添加状态("清障", (float)value, 0.0);
 		}
 		else if (name == "神·二乔")
 		{
