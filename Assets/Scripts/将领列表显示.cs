@@ -415,7 +415,7 @@ public class 将领列表显示 : MonoBehaviour
 				将领属性信息对象.transform.GetChild(1).GetChild(7).GetComponent<Text>()
 					.text = 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].详细信息.经验.ToString() + "/" + 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].详细信息.升级需要经验.ToString();
 					将领属性信息对象.transform.GetChild(1).GetChild(8).gameObject.SetActive(value: false);
-					if (全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].详细信息.经验 < 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].获取当前等级升级需要经验(99.0))
+					if (全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].将领属性.成长点数.等级 < 轮回系统.获取将领等级上限())
 					{
 						将领属性信息对象.transform.GetChild(1).GetChild(8).gameObject.SetActive(value: true);
 					}

@@ -8,9 +8,20 @@ public class 编队将领渲染 : MonoBehaviour
 
 	private List<List<将领信息>> 要判断的编队列表;
 
+	private 战斗系统 战斗;
+
+	private void Awake()
+	{
+		战斗 = transform.parent == null ? null : transform.parent.GetComponent<战斗系统>();
+	}
+
 	private void 开始渲染编队将领()
 	{
-		战斗系统 component = base.transform.parent.gameObject.transform.GetComponent<战斗系统>();
+		if (战斗 == null)
+		{
+			return;
+		}
+		战斗系统 component = 战斗;
 		if (设置攻守方 == 0)
 		{
 			要判断的编队列表 = component.攻方要渲染的编队将领列表;
@@ -100,6 +111,15 @@ public class 编队将领渲染 : MonoBehaviour
 
 	private void Update()
 	{
+		if (战斗 == null)
+		{
+			return;
+		}
+		List<List<将领信息>> pending = 设置攻守方 == 0 ? 战斗.攻方要渲染的编队将领列表 : 战斗.守方要渲染的编队将领列表;
+		if (pending == null || pending.Count == 0)
+		{
+			return;
+		}
 		开始渲染编队将领();
 	}
 }

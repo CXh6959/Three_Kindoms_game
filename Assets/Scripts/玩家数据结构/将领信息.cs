@@ -74,9 +74,10 @@ namespace 玩家数据结构
 		{
 			double num = 获取的经验值;
 			int num2 = 0;
+			int 等级上限 = 轮回系统.获取将领等级上限();
 			while (true)
 			{
-				if (num2 < 99)
+				if (num2 < 等级上限)
 				{
 					详细信息.升级需要经验 = 获取当前等级升级需要经验(将领属性.成长点数.等级);
 					double num3 = 详细信息.升级需要经验 - 详细信息.经验;
@@ -86,7 +87,7 @@ namespace 玩家数据结构
 						{
 							break;
 						}
-						if (将领属性.成长点数.等级 < 99.0)
+						if (将领属性.成长点数.等级 < 等级上限)
 						{
 							num -= num3;
 							将领属性.成长点数.等级 = 将领属性.成长点数.等级 + 1.0;
@@ -118,7 +119,7 @@ namespace 玩家数据结构
 			double num = 0.0;
 			for (int i = 0; (double)i < 等级; i++)
 			{
-				num += (double)(15 * i * i * i);
+					num += 15.0 * i * i * i;
 			}
 			return num;
 		}

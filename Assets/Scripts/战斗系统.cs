@@ -47,6 +47,8 @@ public class 战斗系统 : MonoBehaviour
 
 	public Transform 城墙血条对象;
 
+	private double 上次显示城墙 = double.NaN;
+
 	private GameObject 坑位模型;
 
 	public List<将领配兵> 消灭敌军列表 = new List<将领配兵>();
@@ -170,16 +172,16 @@ public class 战斗系统 : MonoBehaviour
 		}
 		if (战场类型 == 1)
 		{
-			城墙信息显示.text = 被攻击的城池.城墙.ToString();
 			double 城墙 = 被攻击的城池.城墙;
-			double num = 被攻击的城池.获取城墙上限();
-			double num2 = 0.0;
-			if (城墙 > 0.0)
+			if (城墙 != 上次显示城墙)
 			{
-				num2 = 城墙 / num;
+				城墙信息显示.text = 城墙.ToString();
+				double num = 被攻击的城池.获取城墙上限();
+				double num2 = 城墙 > 0.0 && num > 0.0 ? 城墙 / num : 0.0;
+				float num3 = (float)num2;
+				城墙血条对象.localPosition = new Vector2(3f * num3, -0.15f);
+				上次显示城墙 = 城墙;
 			}
-			float num3 = (float)num2;
-			城墙血条对象.localPosition = new Vector2(3f * num3, -0.15f);
 		}
 		double num4 = 0.0;
 		if (守方兵力 <= 0.0 || 攻方兵力 <= 0.0)

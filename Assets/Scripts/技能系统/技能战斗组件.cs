@@ -19,6 +19,7 @@ public class 技能战斗组件 : MonoBehaviour
 	private float 魅惑结束;
 	private float 连环结束;
 	private float 回春结束;
+	private float 复生结束;
 	private double 回春比例;
 	private double 复生比例;
 	private int 护盾层数;
@@ -28,6 +29,9 @@ public class 技能战斗组件 : MonoBehaviour
 	private double 减速比例;
 	private float 攻击加成结束;
 	private float 防御加成结束;
+	private SpriteRenderer 状态特效对象;
+	private static Sprite 状态特效图;
+	private float 下次状态特效检查时间;
 
 	private void Start()
 	{
@@ -40,6 +44,7 @@ public class 技能战斗组件 : MonoBehaviour
 		技能 = 全局技能库.获取将领技能(将领.本将领信息.将领属性.初始属性.名字);
 		战斗 = 获取战斗();
 		怒气 = 0.0;
+		创建状态特效();
 	}
 
 	private void Update()
@@ -57,6 +62,11 @@ public class 技能战斗组件 : MonoBehaviour
 		if (回春结束 > Time.time && 将领.本将领信息.详细信息.剩余兵力 > 0.0)
 		{
 			将领.恢复兵力(将领.获取最大兵力() * 回春比例 * Time.deltaTime);
+		}
+		if (状态特效对象 != null && (状态特效对象.enabled || Time.time >= 下次状态特效检查时间))
+		{
+			下次状态特效检查时间 = Time.time + 0.2f;
+			刷新状态特效();
 		}
 	}
 
@@ -223,13 +233,14 @@ public class 技能战斗组件 : MonoBehaviour
 
 	public bool 尝试复生()
 	{
-		if (复生比例 <= 0.0 || 回春结束 <= Time.time)
+		if (复生比例 <= 0.0 || 复生结束 <= Time.time)
 		{
 			return false;
 		}
 		将领.本将领信息.详细信息.剩余兵力 = 将领.获取最大兵力() * 复生比例;
 		将领.本将领信息.将领配兵.数量 = 将领.本将领信息.详细信息.剩余兵力;
 		复生比例 = 0.0;
+		复生结束 = 0f;
 		return true;
 	}
 
@@ -269,6 +280,7 @@ public class 技能战斗组件 : MonoBehaviour
 		string name = 将领.本将领信息.将领属性.初始属性.名字;
 		int rank = 将领.本将领信息.阶位;
 		double value = 技能.获取阶位倍率(rank);
+		将领.显示技能施法特效(0.5f);
 		if (name == "神·曹操")
 		{
 			增加我方怒气(value, false);
@@ -305,9 +317,9 @@ public class 技能战斗组件 : MonoBehaviour
 			增加自身怒气((rank + 1) * 25.0);
 			添加状态("无敌", 5f, 0.0);
 		}
-			else if (name == "神·陆逊")
-			{
-				对敌方添加随机状态("连环", rank == 0 ? 2 : rank == 1 ? 4 : rank == 2 ? 6 : 8, 10f, -1.0);
+		else if (name == "神·陆逊")
+		{
+			对敌方添加随机状态("连环", rank == 0 ? 2 : rank == 1 ? 4 : rank == 2 ? 6 : 8, 10f, -1.0);
 			对敌方全体伤害(value, "fire", false);
 		}
 		else if (name == "神·关羽")
@@ -323,7 +335,8 @@ public class 技能战斗组件 : MonoBehaviour
 		}
 		else if (name == "神·周瑜")
 		{
-			将领功能 target = 获取敌方().Count == 0 ? null : (rank < 2 ? 获取敌方()[Random.Range(0, 获取敌方().Count)] : 获取最高攻击敌人());
+			List<将领功能> 敌方将领 = 获取敌方();
+			将领功能 target = 敌方将领.Count == 0 ? null : (rank < 2 ? 敌方将领[Random.Range(0, 敌方将领.Count)] : 获取最高攻击敌人());
 			if (target != null) target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0, "fire");
 		}
 		else if (name == "神·荀彧")
@@ -500,8 +513,10 @@ public class 技能战斗组件 : MonoBehaviour
 		else if (name == "攻击") { if (攻击加成结束 <= Time.time) 攻击加成比例 = 0.0; 攻击加成比例 = Mathf.Max((float)攻击加成比例, (float)(value / 100.0)); 攻击加成结束 = end; }
 		else if (name == "防御") { if (防御加成结束 <= Time.time) 防御加成比例 = 0.0; 防御加成比例 = Mathf.Max((float)防御加成比例, (float)(value / 100.0)); 防御加成结束 = end; }
 		else if (name == "回春") { 回春结束 = end; 回春比例 = value; }
-		else if (name == "复生") { 回春结束 = end; 复生比例 = value; }
+		else if (name == "复生") { 复生结束 = end; 复生比例 = value; }
 		else if (name == "护盾") 护盾层数 = Mathf.Max(护盾层数, (int)value);
+		下次状态特效检查时间 = 0f;
+		刷新状态特效();
 	}
 
 	private void 使我方添加状态(string name, float seconds, double value)
@@ -578,14 +593,18 @@ public class 技能战斗组件 : MonoBehaviour
 	{
 		冻结结束 = 魅惑结束 = 连环结束 = 0f;
 		减速比例 = 0.0;
+		下次状态特效检查时间 = 0f;
+		刷新状态特效();
 	}
 
 	private void 清除增益状态()
 	{
-		无敌结束 = 圣阳结束 = 武圣结束 = 无双结束 = 回春结束 = 0f;
+		无敌结束 = 圣阳结束 = 清障结束 = 武圣结束 = 无双结束 = 回春结束 = 复生结束 = 0f;
 		攻击加成比例 = 防御加成比例 = 0.0;
 		攻击加成结束 = 防御加成结束 = 0f;
 		护盾层数 = 0;
+		下次状态特效检查时间 = 0f;
+		刷新状态特效();
 	}
 
 	private bool 有状态(string name)
@@ -594,6 +613,60 @@ public class 技能战斗组件 : MonoBehaviour
 		if (name == "圣阳") return 圣阳结束 > Time.time;
 		if (name == "连环") return 连环结束 > Time.time;
 		return false;
+	}
+
+	private void 创建状态特效()
+	{
+		if (状态特效图 == null)
+		{
+			const int size = 32;
+			Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+			texture.name = "状态持续光环";
+			Color32[] pixels = new Color32[size * size];
+			Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+			for (int y = 0; y < size; y++)
+			{
+				for (int x = 0; x < size; x++)
+				{
+					float distance = Vector2.Distance(new Vector2(x, y), center) / (size * 0.5f);
+					byte alpha = (byte)(Mathf.Clamp01(1f - Mathf.Abs(distance - 0.72f) * 8f) * 255f);
+					pixels[y * size + x] = new Color32(255, 255, 255, alpha);
+				}
+			}
+			texture.SetPixels32(pixels);
+			texture.Apply(false, true);
+			状态特效图 = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+		}
+		GameObject effect = new GameObject("状态持续特效", typeof(SpriteRenderer));
+		effect.transform.SetParent(transform, false);
+		状态特效对象 = effect.GetComponent<SpriteRenderer>();
+		状态特效对象.sprite = 状态特效图;
+		状态特效对象.sortingOrder = 2;
+		状态特效对象.enabled = false;
+	}
+
+	private void 刷新状态特效()
+	{
+		if (状态特效对象 == null)
+		{
+			return;
+		}
+		bool 负面 = 冻结结束 > Time.time || 魅惑结束 > Time.time || 连环结束 > Time.time;
+		bool 恢复 = 回春结束 > Time.time || 复生结束 > Time.time;
+		bool 增益 = 无敌结束 > Time.time || 圣阳结束 > Time.time || 清障结束 > Time.time ||
+			武圣结束 > Time.time || 无双结束 > Time.time || 攻击加成结束 > Time.time ||
+			防御加成结束 > Time.time || 护盾层数 > 0;
+		状态特效对象.enabled = 负面 || 恢复 || 增益;
+		if (!状态特效对象.enabled)
+		{
+			return;
+		}
+		Color color = 负面 ? new Color(0.24f, 0.72f, 1f) : (恢复 ? new Color(0.25f, 1f, 0.45f) : new Color(1f, 0.78f, 0.2f));
+		color.a = 0.35f + Mathf.PingPong(Time.time * 1.5f, 0.3f);
+		状态特效对象.color = color;
+		float scale = 3.4f + Mathf.PingPong(Time.time * 0.7f, 0.35f);
+		状态特效对象.transform.localScale = new Vector3(scale, scale * 0.42f, 1f);
+		状态特效对象.transform.localPosition = new Vector3(0f, -0.25f, 0f);
 	}
 
 	private bool 是特殊NPC()

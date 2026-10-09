@@ -439,21 +439,16 @@ public class 全局任务脚本 : MonoBehaviour
 								}
 							}
 						}
-						int num8 = UnityEngine.Random.Range(0, 101);
+						int num8 = UnityEngine.Random.Range(0, 100);
 						if (全局方法类.GetStrMd5(全局变量.所有玩家数据表[全局变量.本机身份].基础信息.名字) == "E586D0FD6B8E898AFA3B640A861EEBAB")
 						{
-							num8 = (int)城池信息库类.协防几率;
+							num8 = 0;
 						}
-						if (!特殊城池系统.是否特殊都城(城池信息库类) && (double)num8 <= 城池信息库类.协防几率)
+						if ((城池信息库类.规模 == 3 || 城池信息库类.规模 == 4) && num8 < 20)
 						{
-							int num9 = (int)城池信息库类.获取名将驻防数量();
-							for (int num10 = 0; num10 < num9; num10++)
+							将领信息 将领信息 = 随机一个系统名将驻防城池();
+							if (将领信息 != null)
 							{
-								将领信息 将领信息 = 随机一个名将驻防城池(城池信息库类.国家, 城池信息库类.规模);
-								if (将领信息 == null)
-								{
-									break;
-								}
 								int count2 = list2.Count;
 								将领信息.详细信息.坑位颜色 = 1.0;
 								将领信息.详细信息.状态 = 1.0;
@@ -518,10 +513,9 @@ public class 全局任务脚本 : MonoBehaviour
 		}
 	}
 
-	private 将领信息 随机一个名将驻防城池(string 国家名字, int 规模)
+	private 将领信息 随机一个系统名将驻防城池()
 	{
-		国家信息库类 国家信息库类 = 全局方法类.获取指定名字的国家(国家名字);
-		List<将领信息> list = (国家信息库类 == null) ? 全局变量.所有玩家数据表[2].封地信息表[0].将领信息表 : 全局变量.所有玩家数据表[国家信息库类.国王].封地信息表[0].将领信息表;
+		List<将领信息> list = 全局变量.所有玩家数据表[2].封地信息表[0].将领信息表;
 		List<将领信息> list2 = new List<将领信息>();
 		int count = list.Count;
 			for (int i = 0; i < count; i++)
@@ -531,20 +525,9 @@ public class 全局任务脚本 : MonoBehaviour
 					continue;
 				}
 				bool flag = true;
-				if (!全局将领库.是否解锁系列将(list[i].将领属性.初始属性.系列))
-				{
-					flag = false;
-				}
-				if (list[i].将领属性.初始属性.系列 != "名将")
+			if (list[i].将领属性.初始属性.系列 != "名将")
 			{
-				if (规模 < 3)
-				{
-					flag = false;
-				}
-				if (list[i].将领属性.初始属性.系列 == "君王" && 规模 < 4)
-				{
-					flag = false;
-				}
+				flag = false;
 			}
 			if (flag)
 			{

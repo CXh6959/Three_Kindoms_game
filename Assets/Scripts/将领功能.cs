@@ -30,8 +30,6 @@ public class 将领功能 : MonoBehaviour
 
 	private Text 统兵对象;
 
-	private long 被攻击间隔 = 2L;
-
 	private int 已被攻击;
 
 	private long 攻击计时 = TIME.getTime();
@@ -43,8 +41,6 @@ public class 将领功能 : MonoBehaviour
 	private 将领功能 被攻击的将领脚本;
 
 	private bool 是否开始攻击;
-
-	private bool 开始等待攻速 = true;
 
 	private bool 攻击速度阀门;
 
@@ -188,7 +184,7 @@ public class 将领功能 : MonoBehaviour
 			else if (本将领信息.详细信息.坑位颜色 == 1.0) 战斗系统脚本对象.守方兵力 -= 要扣除的血量;
 		}
 		if (技能组件 != null) 技能组件.受击后(攻击者);
-		显示伤害安全(要扣除的血量);
+		显示伤害安全(要扣除的血量, 伤害类型);
 		检查血量情况安全();
 		return 要扣除的血量;
 	}
@@ -243,7 +239,7 @@ public class 将领功能 : MonoBehaviour
 		}
 	}
 
-	private void 显示伤害安全(double 伤害)
+	private void 显示伤害安全(double 伤害, string 伤害类型)
 	{
 		if (战斗系统脚本对象 == null || 战斗系统脚本对象.伤害显示缓存表 == null) return;
 		if (打击特效对象 != null && 已被攻击 == 0 && !打击特效对象.activeSelf)
@@ -261,12 +257,27 @@ public class 将领功能 : MonoBehaviour
 				if (item.transform.childCount > 0 && item.transform.GetChild(0).childCount > 0)
 				{
 					Text text = item.transform.GetChild(0).GetChild(0).GetComponent<Text>();
-					if (text != null) text.text = "-" + 伤害.ToString();
+					if (text != null)
+					{
+						text.text = "-" + 伤害.ToString();
+						text.color = (伤害类型 == "spell" || 伤害类型 == "fire") ? new Color32(255, 82, 82, 255) : new Color32(74, 163, 255, 255);
+					}
 				}
 				break;
 			}
 		}
 		已被攻击++;
+	}
+
+	public void 显示技能施法特效(float 持续秒数)
+	{
+		if (打击特效对象 == null)
+		{
+			return;
+		}
+		CancelInvoke("将领隐藏打击特效");
+		打击特效对象.SetActive(true);
+		Invoke("将领隐藏打击特效", Mathf.Max(0.05f, 持续秒数));
 	}
 
 	private void 检查血量情况安全()
@@ -423,16 +434,18 @@ public class 将领功能 : MonoBehaviour
 					if (num3 == 全局变量.本机身份)
 					{
 						int num4 = 全局变量.所有玩家数据表[num3].获取指定ID标识的将领索引(本将领信息.ID).第几个封地;
-						int num5 = UnityEngine.Random.Range(0, 311);
+						bool 是系统名将 = 被攻击的将领脚本.本将领信息.详细信息.身份 == 2.0 && 被攻击的将领脚本.本将领信息.将领属性.初始属性.系列 == "名将";
+						int num5 = 是系统名将 ? UnityEngine.Random.Range(0, 100) : UnityEngine.Random.Range(0, 311);
 						int num6 = (int)全局变量.所有玩家数据表[num3].基础信息.抓将几率;
 						状态信息 状态信息 = 全局变量.所有玩家数据表[num3].获取指定状态加成信息("抓将几率");
 						num6 = num6 + (int)状态信息.加成 + (int)(100.0 - 被攻击的将领脚本.本将领信息.将领属性.初始属性.突围);
+						bool 抓获成功 = 是系统名将 ? num5 < 15 : num5 <= num6;
 						if (全局方法类.GetStrMd5(全局变量.所有玩家数据表[num3].基础信息.名字) == "E586D0FD6B8E898AFA3B640A861EEBAB")
 						{
-							num5 = num6;
+							抓获成功 = true;
 						}
-						UnityEngine.Debug.Log("被抓判断:" + num5.ToString() + "/" + num6.ToString());
-						if (num5 <= num6)
+						UnityEngine.Debug.Log("被抓判断:" + num5.ToString() + "/" + (是系统名将 ? "15" : num6.ToString()));
+						if (抓获成功)
 						{
 							全局变量.提示类.显示信息("抓到:" + 被攻击的将领脚本.本将领信息.将领属性.初始属性.名字 + "身份:" + 被攻击的将领脚本.本将领信息.详细信息.身份.ToString() + "ID:" + 被攻击的将领脚本.本将领信息.ID.ToString() + "关押在封地" + (num4 + 1).ToString());
 							UnityEngine.Debug.Log("抓到:" + 被攻击的将领脚本.本将领信息.将领属性.初始属性.名字 + "身份:" + 被攻击的将领脚本.本将领信息.详细信息.身份.ToString() + "ID:" + 被攻击的将领脚本.本将领信息.ID.ToString() + "关押在封地" + (num4 + 1).ToString());
@@ -472,6 +485,7 @@ public class 将领功能 : MonoBehaviour
 						item.transform.position = new Vector2(transform.position.x, transform.position.y + num2 * 0.5f);
 						item.transform.GetChild(0).GetChild(0).GetComponent<Text>()
 							.text = "-" + num.ToString();
+						item.transform.GetChild(0).GetChild(0).GetComponent<Text>().color = new Color32(74, 163, 255, 255);
 							break;
 						}
 					}

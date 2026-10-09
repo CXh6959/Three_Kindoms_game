@@ -7,6 +7,10 @@ public class 全局将领库
 {
 	public static List<将领属性库类> 属性表 = new List<将领属性库类>();
 
+	private static readonly Dictionary<string, Sprite> 神将头像缓存 = new Dictionary<string, Sprite>();
+
+	private static readonly Dictionary<string, Sprite> 神将全身图缓存 = new Dictionary<string, Sprite>();
+
 	// 神将与特殊 NPC 将领定义（需求三/四，名单与技能来自《神将技能数据表》）。
 	// ID 段：号令类神君王 500-503（不可合成，仅成就获得）；合成型神将 504-519；特殊NPC 520-525。
 	// 技能公式见 全局技能库（按神将名查询）。神将基础三维在 快捷生成神将 中拉满。
@@ -886,6 +890,14 @@ public class 全局将领库
 			}
 		}
 		将领属性库类 头像对应将领 = 查询指定名字的将领数据(将领名字);
+		if (头像对应将领 != null && 头像对应将领.系列 == "神将")
+		{
+			Sprite 神将头像 = 获取神将头像(将领名字);
+			if (神将头像 != null)
+			{
+				return 神将头像;
+			}
+		}
 		if (头像对应将领 != null && 头像对应将领.系列 == "名将")
 		{
 			count = 全局变量.所有头像资源表.Count;
@@ -898,6 +910,44 @@ public class 全局将领库
 			}
 		}
 		return 全局变量.未知头像;
+	}
+
+	public static Sprite 获取神将全身图(string 神将名)
+	{
+		Sprite sprite;
+		if (神将全身图缓存.TryGetValue(神将名, out sprite))
+		{
+			return sprite;
+		}
+		Texture2D texture = Resources.Load<Texture2D>("神将图片/" + 神将名);
+		if (texture == null)
+		{
+			return null;
+		}
+		sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+		sprite.name = 神将名 + "_全身";
+		神将全身图缓存[神将名] = sprite;
+		return sprite;
+	}
+
+	private static Sprite 获取神将头像(string 神将名)
+	{
+		Sprite sprite;
+		if (神将头像缓存.TryGetValue(神将名, out sprite))
+		{
+			return sprite;
+		}
+		Texture2D texture = Resources.Load<Texture2D>("神将图片/" + 神将名);
+		if (texture == null)
+		{
+			return null;
+		}
+		float side = Mathf.Min(texture.width, texture.height * 0.46f);
+		Rect rect = new Rect((texture.width - side) * 0.5f, texture.height - side, side, side);
+		sprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), 100f);
+		sprite.name = 神将名 + "_头像";
+		神将头像缓存[神将名] = sprite;
+		return sprite;
 	}
 
 	public static int 查询指定将领的头像(string 将领名字)

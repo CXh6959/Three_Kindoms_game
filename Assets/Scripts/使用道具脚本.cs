@@ -154,11 +154,11 @@ public class 使用道具脚本 : MonoBehaviour
 													开始滚动 = true;
 												}
 
-												private void FixedUpdate()
+															private void Update()
 												{
 													if (开始滚动)
 													{
-														pos = new Vector2(50f * Time.fixedDeltaTime, 0f);
+																	pos = new Vector2(50f * Time.deltaTime, 0f);
 														if (滚动信息.anchoredPosition.x < 结束位置)
 														{
 															滚动信息.anchoredPosition = new Vector2(0f, 滚动信息.anchoredPosition.y);

@@ -14,8 +14,6 @@ public class 开始界面背景动画 : MonoBehaviour
 
 	public 提示移动 提示对象;
 
-	private bool 正在验证;
-
 	private void Start()
 	{
 		背景初始位置 = 背景.localPosition;
@@ -28,7 +26,6 @@ public class 开始界面背景动画 : MonoBehaviour
 		if (全局方法类.GetStrMd5(全局变量.url) != "F912BA1D275091B2F7A0BFF16A86AC9C")
 		{
 			UnityEngine.Debug.LogError("验证地址配置不正确，已停止联网验证；本地存档不会被删除。");
-			正在验证 = false;
 			yield break;
 		}
 		using (UnityWebRequest webRequest = UnityWebRequest.Get(全局变量.url))
@@ -37,7 +34,6 @@ public class 开始界面背景动画 : MonoBehaviour
 			yield return webRequest.SendWebRequest();
 			string[] array = 全局变量.url.Split('/');
 			int num = array.Length - 1;
-			正在验证 = false;
 			switch (webRequest.result)
 			{
 			case UnityWebRequest.Result.ConnectionError:
@@ -70,7 +66,7 @@ public class 开始界面背景动画 : MonoBehaviour
 		}
 	}
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		float num = 511f;
 		if (背景.localPosition.x != num)

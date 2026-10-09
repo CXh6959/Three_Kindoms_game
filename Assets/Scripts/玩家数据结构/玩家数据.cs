@@ -736,7 +736,7 @@ namespace 玩家数据结构
 			int count = list.Count;
 			for (int i = 0; i < count; i++)
 			{
-				if (!全局将领库.是否解锁系列将(list[i]))
+				if (list[i].系列 == "名将" || !全局将领库.是否解锁系列将(list[i]))
 				{
 					continue;
 				}

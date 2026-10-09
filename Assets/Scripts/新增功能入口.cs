@@ -18,8 +18,16 @@ public class 新增功能入口 : MonoBehaviour
 	private GameObject 界面根对象;
 	private GameObject 面板对象;
 	private GameObject 退出确认对象;
+	private GameObject 退出入口对象;
+	private GameObject 将神坛入口对象;
+	private GameObject 成就入口对象;
+	private GameObject 游戏设置界面对象;
+	private GameObject 成就信息布局对象;
+	private GameObject 校场布局对象;
+	private readonly List<Canvas> 场景弹窗画布 = new List<Canvas>();
 	private RectTransform 安全区域对象;
 	private RectTransform 内容对象;
+	private RectTransform 将神坛入口矩形;
 	private Text 标题文本;
 	private Text 状态文本;
 	private Font 界面字体;
@@ -28,6 +36,7 @@ public class 新增功能入口 : MonoBehaviour
 	private int 上次屏幕宽度;
 	private int 上次屏幕高度;
 	private Rect 上次安全区域;
+	private float 下次入口状态刷新时间;
 
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 	private static void 创建常驻入口()
@@ -61,8 +70,16 @@ public class 新增功能入口 : MonoBehaviour
 		}
 		面板对象 = null;
 		退出确认对象 = null;
+		退出入口对象 = null;
+		将神坛入口对象 = null;
+		成就入口对象 = null;
+		游戏设置界面对象 = null;
+		成就信息布局对象 = null;
+		校场布局对象 = null;
+		场景弹窗画布.Clear();
 		安全区域对象 = null;
 		内容对象 = null;
+		将神坛入口矩形 = null;
 		标题文本 = null;
 		状态文本 = null;
 		if (scene.buildIndex >= 0)
@@ -94,17 +111,33 @@ public class 新增功能入口 : MonoBehaviour
 
 		安全区域对象 = 创建拉伸对象("安全区域", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 		应用安全区域();
-		float 退出按钮横坐标 = 创建功能面板 ? -270f : -96f;
-		Button exit = 创建按钮("退出游戏", 安全区域对象, "退出", new Vector2(150f, 58f), new Vector2(退出按钮横坐标, -44f), new Vector2(1f, 1f), 按钮色, 26);
-		exit.onClick.AddListener(打开退出确认);
 		创建退出确认界面();
 		if (!创建功能面板)
 		{
 			return;
 		}
 
-		Button entry = 创建按钮("功能入口", 安全区域对象, "功能", new Vector2(150f, 58f), new Vector2(-96f, -44f), new Vector2(1f, 1f), 强调色, 26);
-		entry.onClick.AddListener(() => 打开面板());
+		游戏设置界面对象 = 查找场景对象("游戏设置界面");
+		成就信息布局对象 = 查找场景对象("成就信息布局");
+		校场布局对象 = 查找场景对象("校场布局");
+		缓存场景弹窗画布();
+		隐藏旧成就页签();
+
+		Button exit = 创建按钮("设置_退出游戏", 安全区域对象, "退出游戏", new Vector2(260f, 64f), new Vector2(0f, 92f), new Vector2(0.5f, 0f), 强调色, 27);
+		exit.onClick.AddListener(打开退出确认);
+		退出入口对象 = exit.gameObject;
+
+		Button altarEntry = 创建图片按钮("将神坛入口", 安全区域对象, "将神坛", Resources.Load<Texture2D>("界面图片/将神坛入口"), new Vector2(180f, 220f), Vector2.zero, new Vector2(0.59f, 0.37f));
+		altarEntry.onClick.AddListener(打开将神坛);
+		将神坛入口对象 = altarEntry.gameObject;
+		将神坛入口矩形 = altarEntry.GetComponent<RectTransform>();
+
+		Button achievementEntry = 创建按钮("轮回成就入口", 安全区域对象, "轮回成就", new Vector2(230f, 62f), new Vector2(-145f, 82f), new Vector2(1f, 0f), 强调色, 25);
+		achievementEntry.onClick.AddListener(打开成就);
+		成就入口对象 = achievementEntry.gameObject;
+		退出入口对象.SetActive(false);
+		将神坛入口对象.SetActive(false);
+		成就入口对象.SetActive(false);
 
 		面板对象 = 创建拉伸对象("新增功能遮罩", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
 		面板对象.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.62f);
@@ -140,6 +173,7 @@ public class 新增功能入口 : MonoBehaviour
 		状态文本.rectTransform.offsetMax = new Vector2(-18f, 60f);
 
 		面板对象.SetActive(false);
+		创建手动副本入口();
 	}
 
 	private void 创建退出确认界面()
@@ -176,9 +210,16 @@ public class 新增功能入口 : MonoBehaviour
 
 	private void Update()
 	{
+		bool 屏幕发生变化 = false;
 		if (安全区域对象 != null && (上次屏幕宽度 != Screen.width || 上次屏幕高度 != Screen.height || 上次安全区域 != Screen.safeArea))
 		{
 			应用安全区域();
+			屏幕发生变化 = true;
+		}
+		if (屏幕发生变化 || Time.unscaledTime >= 下次入口状态刷新时间)
+		{
+			下次入口状态刷新时间 = Time.unscaledTime + 0.1f;
+			刷新入口显示状态();
 		}
 		if (!Input.GetKeyDown(KeyCode.Escape))
 		{
@@ -198,10 +239,41 @@ public class 新增功能入口 : MonoBehaviour
 		}
 	}
 
+	private void 刷新入口显示状态()
+	{
+		bool 显示退出 = 游戏设置界面对象 != null && 游戏设置界面对象.activeInHierarchy && !存在其他弹窗(游戏设置界面对象) && !面板是否打开();
+		bool 显示成就 = 成就信息布局对象 != null && 成就信息布局对象.activeInHierarchy && !存在其他弹窗(成就信息布局对象) && !面板是否打开();
+		bool 显示将神坛 = 校场布局对象 != null && 校场布局对象.activeInHierarchy && !存在其他弹窗(校场布局对象) && !显示退出 && !显示成就 && !面板是否打开();
+		if (显示将神坛)
+		{
+			更新将神坛入口位置();
+		}
+		设置对象显示状态(退出入口对象, 显示退出);
+		设置对象显示状态(成就入口对象, 显示成就);
+		设置对象显示状态(将神坛入口对象, 显示将神坛);
+	}
+
 	private void 打开面板()
 	{
 		面板对象.SetActive(true);
 		显示概况();
+	}
+
+	private void 打开将神坛()
+	{
+		面板对象.SetActive(true);
+		显示将神坛();
+	}
+
+	private void 打开成就()
+	{
+		面板对象.SetActive(true);
+		显示成就();
+	}
+
+	private bool 面板是否打开()
+	{
+		return (面板对象 != null && 面板对象.activeSelf) || (退出确认对象 != null && 退出确认对象.activeSelf);
 	}
 
 	private void 关闭面板()
@@ -255,6 +327,31 @@ public class 新增功能入口 : MonoBehaviour
 		上次安全区域 = safeArea;
 	}
 
+	private void 更新将神坛入口位置()
+	{
+		if (校场布局对象 == null || 将神坛入口矩形 == null || 安全区域对象 == null)
+		{
+			return;
+		}
+		RectTransform 校场矩形 = 校场布局对象.transform as RectTransform;
+		if (校场矩形 == null)
+		{
+			return;
+		}
+		Canvas 校场画布 = 校场矩形.GetComponentInParent<Canvas>();
+		Camera 校场相机 = 校场画布 != null && 校场画布.renderMode != RenderMode.ScreenSpaceOverlay ? 校场画布.worldCamera : null;
+		Vector2 校场屏幕坐标 = RectTransformUtility.WorldToScreenPoint(校场相机, 校场矩形.position);
+		Vector2 局部坐标;
+		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(安全区域对象, 校场屏幕坐标, null, out 局部坐标))
+		{
+			return;
+		}
+		将神坛入口矩形.anchorMin = new Vector2(0.5f, 0.5f);
+		将神坛入口矩形.anchorMax = new Vector2(0.5f, 0.5f);
+		// 文档红圈位于校场左下方，偏移量以 1920x1080 参考分辨率表示。
+		将神坛入口矩形.anchoredPosition = 局部坐标 + new Vector2(-310f, -210f);
+	}
+
 	private void 显示概况()
 	{
 		清空内容("轮回概况");
@@ -286,47 +383,9 @@ public class 新增功能入口 : MonoBehaviour
 			}
 		});
 
-		Button dungeon = 创建按钮("轮回副本", 内容对象, "自动编队挑战副本", new Vector2(330f, 72f), new Vector2(-190f, 55f), new Vector2(1f, 0.5f), 按钮色, 27);
-		dungeon.interactable = 轮回副本系统.是否开启();
-		dungeon.onClick.AddListener(自动挑战副本);
-
 		string 下一轮回状态 = next.interactable ? "已统一天下，可以进入下一轮回。" : "统一天下后可进入下一轮回。";
-		string 副本状态 = dungeon.interactable ? "轮回副本已开启。" : "第50轮回开启轮回副本。";
+		string 副本状态 = 轮回副本系统.是否开启() ? "轮回副本已开启。" : "第50轮回开启轮回副本。";
 		显示状态(下一轮回状态 + "  " + 副本状态);
-	}
-
-	private void 自动挑战副本()
-	{
-		玩家数据 玩家 = 获取玩家();
-		if (玩家 == null)
-		{
-			显示状态("玩家数据不存在。");
-			return;
-		}
-		List<将领信息> 队伍 = new List<将领信息>();
-		for (int i = 0; i < 玩家.封地信息表.Count && 队伍.Count < 5; i++)
-		{
-			封地信息 封地 = 玩家.封地信息表[i];
-			if (封地 == null || 封地.将领信息表 == null)
-			{
-				continue;
-			}
-			for (int j = 0; j < 封地.将领信息表.Count && 队伍.Count < 5; j++)
-			{
-				将领信息 将领 = 封地.将领信息表[j];
-				if (将领 != null && 将领.详细信息 != null && 将领.将领配兵 != null && 将领.详细信息.状态 == 0.0 && 将领.将领配兵.数量 > 0.0)
-				{
-					队伍.Add(将领);
-				}
-			}
-		}
-		if (队伍.Count == 0)
-		{
-			显示状态("没有空闲且已配兵的将领可用于副本。");
-			return;
-		}
-		bool success = 轮回副本系统.发起副本(队伍);
-		显示状态(success ? "轮回副本出征成功，已派出 " + 队伍.Count + " 名将领。" : "副本出征失败，可能已有副本队伍在行军。");
 	}
 
 	private void 显示将神坛()
@@ -343,46 +402,34 @@ public class 新增功能入口 : MonoBehaviour
 			显示状态("神将数据尚未初始化。");
 			return;
 		}
-		int pageCount = Mathf.Max(1, Mathf.CeilToInt(list.Count / 10f));
+		int pageCount = list.Count;
 		神将页码 = Mathf.Clamp(神将页码, 0, pageCount - 1);
-		int start = 神将页码 * 10;
-		int end = Mathf.Min(start + 10, list.Count);
-		for (int i = start; i < end; i++)
-		{
-			神将图鉴条目 entry = list[i];
-			string label = entry.名字 + (entry.已拥有 ? "  已拥有" : "");
-			Button button = 创建按钮("神将_" + entry.名字, 内容对象, label, new Vector2(370f, 48f), new Vector2(195f, -30f - (i - start) * 55f), new Vector2(0f, 1f), entry.名字 == 当前神将名 ? 强调色 : 按钮色, 22);
-			string 神将名 = entry.名字;
-			button.onClick.AddListener(() =>
-			{
-				当前神将名 = 神将名;
-				显示将神坛();
-			});
-		}
+		神将图鉴条目 selected = list[神将页码];
+		当前神将名 = selected.名字;
 
-		Button prev = 创建按钮("上一页", 内容对象, "<", new Vector2(72f, 48f), new Vector2(48f, 32f), Vector2.zero, 按钮色, 28);
+		RectTransform portraitRect = 创建固定对象("神将立绘", 内容对象, new Vector2(400f, 500f), new Vector2(215f, -22f), new Vector2(0f, 0.5f));
+		Image portrait = portraitRect.gameObject.AddComponent<Image>();
+		portrait.sprite = 全局将领库.获取神将全身图(selected.名字);
+		portrait.preserveAspect = true;
+		portrait.raycastTarget = false;
+
+		Button prev = 创建按钮("上一页", 内容对象, "<", new Vector2(72f, 48f), new Vector2(54f, 26f), Vector2.zero, 按钮色, 28);
 		prev.interactable = 神将页码 > 0;
 		prev.onClick.AddListener(() => { 神将页码--; 显示将神坛(); });
-		Button next = 创建按钮("下一页", 内容对象, ">", new Vector2(72f, 48f), new Vector2(342f, 32f), Vector2.zero, 按钮色, 28);
+		Button next = 创建按钮("下一页", 内容对象, ">", new Vector2(72f, 48f), new Vector2(374f, 26f), Vector2.zero, 按钮色, 28);
 		next.interactable = 神将页码 < pageCount - 1;
 		next.onClick.AddListener(() => { 神将页码++; 显示将神坛(); });
-
-		if (string.IsNullOrEmpty(当前神将名))
-		{
-			当前神将名 = list[0].名字;
-		}
-		神将图鉴条目 selected = list.Find(item => item.名字 == 当前神将名);
-		if (selected == null)
-		{
-			selected = list[0];
-			当前神将名 = selected.名字;
-		}
+		Text page = 创建文本("页码", 内容对象, (神将页码 + 1) + " / " + pageCount, 22, TextAnchor.MiddleCenter, 次要文字色);
+		page.rectTransform.anchorMin = Vector2.zero;
+		page.rectTransform.anchorMax = Vector2.zero;
+		page.rectTransform.sizeDelta = new Vector2(220f, 48f);
+		page.rectTransform.anchoredPosition = new Vector2(214f, 26f);
 		Text name = 创建文本("神将名称", 内容对象, selected.名字, 36, TextAnchor.UpperLeft, 文字色);
 		name.rectTransform.anchorMin = new Vector2(0f, 0.82f);
 		name.rectTransform.anchorMax = new Vector2(1f, 1f);
 		name.rectTransform.offsetMin = new Vector2(440f, 0f);
 		name.rectTransform.offsetMax = new Vector2(-20f, -12f);
-		string detail = 将神坛系统.获取合成材料说明(selected.名字) + "\n\n" + 将神坛系统.获取当前阶位说明(selected.名字);
+		string detail = "基础武力 1000  基础智力 1000  基础统帅 2000\n" + (selected.已拥有 ? "已拥有" : "未拥有") + "  阶位 " + selected.阶位 + "\n\n" + 将神坛系统.获取合成材料说明(selected.名字) + "\n\n" + 将神坛系统.获取当前阶位说明(selected.名字);
 		Text description = 创建文本("神将说明", 内容对象, detail, 24, TextAnchor.UpperLeft, 次要文字色);
 		description.rectTransform.anchorMin = new Vector2(0f, 0.25f);
 		description.rectTransform.anchorMax = new Vector2(1f, 0.82f);
@@ -398,6 +445,9 @@ public class 新增功能入口 : MonoBehaviour
 				显示将神坛();
 				显示状态(result.消息);
 			});
+		}
+		if (selected.已拥有)
+		{
 			Button advance = 创建按钮("神将升阶", 内容对象, "升阶", new Vector2(210f, 62f), new Vector2(-20f, 38f), new Vector2(1f, 0f), 按钮色, 26);
 			advance.onClick.AddListener(() =>
 			{
@@ -518,6 +568,11 @@ public class 新增功能入口 : MonoBehaviour
 
 	private Font 查找界面字体()
 	{
+		Font font = Resources.Load<Font>("等级数字");
+		if (font != null)
+		{
+			return font;
+		}
 		Text[] existingTexts = FindObjectsOfType<Text>();
 		for (int i = 0; i < existingTexts.Length; i++)
 		{
@@ -526,8 +581,91 @@ public class 新增功能入口 : MonoBehaviour
 				return existingTexts[i].font;
 			}
 		}
-		Font font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-		return font != null ? font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+		return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+	}
+
+	private void 隐藏旧成就页签()
+	{
+		string[] 旧页签 = { "修身", "治国", "齐家", "平天下" };
+		for (int i = 0; i < 旧页签.Length; i++)
+		{
+			GameObject tab = 查找场景对象(旧页签[i]);
+			if (tab != null)
+			{
+				tab.SetActive(false);
+			}
+		}
+	}
+
+	private void 缓存场景弹窗画布()
+	{
+		场景弹窗画布.Clear();
+		Canvas[] canvases = FindObjectsOfType<Canvas>(true);
+		Scene activeScene = SceneManager.GetActiveScene();
+		for (int i = 0; i < canvases.Length; i++)
+		{
+			Canvas canvas = canvases[i];
+			if (canvas != null && canvas.gameObject.scene == activeScene && canvas.isRootCanvas && canvas.sortingOrder >= 2 && canvas.sortingOrder <= 4 && !canvas.gameObject.activeInHierarchy)
+			{
+				场景弹窗画布.Add(canvas);
+			}
+		}
+	}
+
+	private bool 存在其他弹窗(GameObject 当前界面)
+	{
+		for (int i = 0; i < 场景弹窗画布.Count; i++)
+		{
+			Canvas canvas = 场景弹窗画布[i];
+			if (canvas == null || !canvas.gameObject.activeInHierarchy)
+			{
+				continue;
+			}
+			bool 属于当前界面 = 当前界面 != null && (canvas.transform.IsChildOf(当前界面.transform) || 当前界面.transform.IsChildOf(canvas.transform));
+			if (!属于当前界面)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void 创建手动副本入口()
+	{
+		选择出征将领[] 出征界面 = FindObjectsOfType<选择出征将领>(true);
+		for (int i = 0; i < 出征界面.Length; i++)
+		{
+			选择出征将领 出征 = 出征界面[i];
+			if (出征 == null || 出征.transform.Find("轮回副本出征") != null)
+			{
+				continue;
+			}
+			Button button = 创建按钮("轮回副本出征", 出征.transform, "轮回副本", new Vector2(230f, 62f), new Vector2(-170f, 76f), new Vector2(1f, 0f), 强调色, 25);
+			button.interactable = 轮回副本系统.是否开启();
+			button.onClick.AddListener(出征.副本_出征选中将领);
+		}
+	}
+
+	private static GameObject 查找场景对象(string name)
+	{
+		Transform[] transforms = FindObjectsOfType<Transform>(true);
+		Scene activeScene = SceneManager.GetActiveScene();
+		for (int i = 0; i < transforms.Length; i++)
+		{
+			if (transforms[i] != null && transforms[i].gameObject.scene == activeScene && transforms[i].name == name)
+			{
+				return transforms[i].gameObject;
+			}
+		}
+		return null;
+	}
+
+	private static void 设置对象显示状态(GameObject target, bool active)
+	{
+		if (target != null && target.activeSelf != active)
+		{
+			target.SetActive(active);
+		}
 	}
 
 	private static void 确保事件系统()
@@ -581,6 +719,26 @@ public class 新增功能入口 : MonoBehaviour
 		Text text = 创建文本("文本", rect, label, fontSize, TextAnchor.MiddleCenter, 文字色);
 		text.rectTransform.offsetMin = new Vector2(8f, 4f);
 		text.rectTransform.offsetMax = new Vector2(-8f, -4f);
+		return button;
+	}
+
+	private Button 创建图片按钮(string name, Transform parent, string label, Texture2D texture, Vector2 size, Vector2 position, Vector2 anchor)
+	{
+		RectTransform rect = 创建固定对象(name, parent, size, position, anchor);
+		Image image = rect.gameObject.AddComponent<Image>();
+		if (texture != null)
+		{
+			image.sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+		}
+		image.preserveAspect = true;
+		Button button = rect.gameObject.AddComponent<Button>();
+		button.targetGraphic = image;
+
+		RectTransform labelBackground = 创建拉伸对象("标题背景", rect, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(8f, 6f), new Vector2(-8f, 52f));
+		labelBackground.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
+		Text text = 创建文本("文本", labelBackground, label, 25, TextAnchor.MiddleCenter, 文字色);
+		text.rectTransform.offsetMin = new Vector2(6f, 2f);
+		text.rectTransform.offsetMax = new Vector2(-6f, -2f);
 		return button;
 	}
 
