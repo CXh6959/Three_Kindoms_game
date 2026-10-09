@@ -64,13 +64,23 @@ public class 将神坛脚本 : MonoBehaviour
 			材料说明.text = 将神坛系统.获取合成材料说明(神将名);
 		}
 		bool 可合成 = !全局将领库.是否号令类神君王(神将名);
+		bool 已拥有 = false;
+		List<神将图鉴条目> 图鉴 = 将神坛系统.获取图鉴();
+		for (int i = 0; i < 图鉴.Count; i++)
+		{
+			if (图鉴[i].名字 == 神将名)
+			{
+				已拥有 = 图鉴[i].已拥有;
+				break;
+			}
+		}
 		if (合成按钮 != null)
 		{
 			合成按钮.gameObject.SetActive(可合成);
 		}
 		if (升阶按钮 != null)
 		{
-			升阶按钮.gameObject.SetActive(可合成);
+			升阶按钮.gameObject.SetActive(已拥有);
 		}
 	}
 

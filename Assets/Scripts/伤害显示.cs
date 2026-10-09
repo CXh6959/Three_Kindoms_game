@@ -14,7 +14,7 @@ public class 伤害显示 : MonoBehaviour
 	{
 	}
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		if (base.gameObject.activeSelf)
 		{

@@ -27,6 +27,11 @@ public static class 轮回系统
 		return 当前轮回数 <= 1 ? 1.0 : Mathf.Pow(1.5f, 当前轮回数 - 1);
 	}
 
+	public static int 获取将领等级上限()
+	{
+		return Mathf.Max(1, 当前轮回数) * 99;
+	}
+
 	public static bool 进入下一轮回()
 	{
 		if (!是否可进入下一轮回())
@@ -42,7 +47,7 @@ public static class 轮回系统
 		全局变量.轮回进度.修复旧数据();
 		全局变量.轮回进度.保存();
 		成就系统.检查轮回成就();
-		初始化脚本.初始化游戏数据();
+		初始化脚本.初始化游戏数据(true);
 		SceneManager.LoadScene(1);
 		return true;
 	}

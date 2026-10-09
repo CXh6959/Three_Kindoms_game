@@ -14,7 +14,7 @@ public class 进度条动画 : MonoBehaviour
 		进度条初始位置 = 进度条.localPosition;
 	}
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		float num = 28f;
 		if (进度条.localPosition.x < num)

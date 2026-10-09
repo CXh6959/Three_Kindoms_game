@@ -16,7 +16,7 @@ public class 文字滚动 : MonoBehaviour
 
 	private Vector2 pos;
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		ScrollResult();
 	}
@@ -25,7 +25,7 @@ public class 文字滚动 : MonoBehaviour
 	{
 		if (类型 == 0)
 		{
-			pos = new Vector2(Speed * Time.fixedDeltaTime, 0f);
+			pos = new Vector2(Speed * Time.deltaTime, 0f);
 			if (方向 == 0)
 			{
 				if (Information.anchoredPosition.x < OverPos)
@@ -47,7 +47,7 @@ public class 文字滚动 : MonoBehaviour
 			}
 			return;
 		}
-		pos = new Vector2(0f, Speed * Time.fixedDeltaTime);
+		pos = new Vector2(0f, Speed * Time.deltaTime);
 		if (方向 == 0)
 		{
 			if (Information.anchoredPosition.y < OverPos)

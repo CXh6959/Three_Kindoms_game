@@ -33,8 +33,6 @@ public class 显示背包物品 : MonoBehaviour
 
 	public 调整数量脚本 调整数量脚本对象;
 
-	private bool 重置列表 = true;
-
 	public void 切换道具()
 	{
 		if (道具装备切换对象.transform.GetChild(0).GetComponent<Toggle>().isOn)

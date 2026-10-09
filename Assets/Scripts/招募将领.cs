@@ -17,7 +17,7 @@ public class 招募将领 : MonoBehaviour
 
 	public GameObject 将领列表对象;
 
-	private float 倒计时 = 60f;
+	private long 上次显示剩余时间 = long.MinValue;
 
 	public List<将领信息> 将领列表 = new List<将领信息>();
 
@@ -36,7 +36,13 @@ public class 招募将领 : MonoBehaviour
 
 	private void 显示刷新时间()
 	{
-		刷新时间对象.text = TIME.ToTimeFormat(60 - (TIME.getTime() - 全局变量.酒馆刷新时间));
+		long 剩余时间 = 60 - (TIME.getTime() - 全局变量.酒馆刷新时间);
+		if (剩余时间 == 上次显示剩余时间)
+		{
+			return;
+		}
+		刷新时间对象.text = TIME.ToTimeFormat(剩余时间);
+		上次显示剩余时间 = 剩余时间;
 	}
 
 	private void 显示道具数量()
@@ -175,7 +181,7 @@ public class 招募将领 : MonoBehaviour
 							{
 								return;
 							}
-							倒计时 = 60f;
+							上次显示剩余时间 = long.MinValue;
 							将领列表.Clear();
 							for (int i = 0; i < 5; i++)
 							{

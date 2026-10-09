@@ -2,12 +2,6 @@ using UnityEngine;
 
 public class 附近山贼
 {
-	private int 显示数量 = 5;
-
-	private int 自身坐标x = 10;
-
-	private int 自身坐标y = 10;
-
 	public static void 生成山贼数据列表()
 	{
 		全局变量.所有山贼数据列表.Clear();

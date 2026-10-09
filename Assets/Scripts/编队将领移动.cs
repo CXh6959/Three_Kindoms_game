@@ -11,8 +11,6 @@ public class 编队将领移动 : MonoBehaviour
 
 	private float 移动速度;
 
-	private bool 是否移动;
-
 	private int 设置攻守方;
 
 	public void 开始移动编队(int 传递的攻守方, float 传递的移动速度)
@@ -43,7 +41,6 @@ public class 编队将领移动 : MonoBehaviour
 		}
 		移动速度 = 传递的移动速度 * 0.5f;
 		UnityEngine.Debug.Log("编队开始移动,移动速度：" + 移动速度.ToString());
-		是否移动 = false;
 		StartCoroutine(协程_编队移动());
 	}
 
@@ -55,7 +52,6 @@ public class 编队将领移动 : MonoBehaviour
 			base.transform.localPosition = Vector2.MoveTowards(base.transform.localPosition, new Vector2(编队入场结束位置x, base.transform.localPosition.y), maxDistanceDelta);
 			yield return null;
 		}
-		是否移动 = false;
 		编队将领上坑 component = base.transform.parent.gameObject.transform.GetComponent<编队将领上坑>();
 		等待队列表信息 item = new 等待队列表信息
 		{
@@ -70,30 +66,4 @@ public class 编队将领移动 : MonoBehaviour
 		}
 	}
 
-	private void FixedUpdate()
-	{
-		if (!是否移动)
-		{
-			return;
-		}
-		if (base.transform.localPosition.x != 编队入场结束位置x)
-		{
-			float maxDistanceDelta = 移动速度 * Time.deltaTime;
-			base.transform.localPosition = Vector2.MoveTowards(base.transform.localPosition, new Vector2(编队入场结束位置x, base.transform.localPosition.y), maxDistanceDelta);
-			return;
-		}
-		是否移动 = false;
-		编队将领上坑 component = base.transform.parent.gameObject.transform.GetComponent<编队将领上坑>();
-		等待队列表信息 item = new 等待队列表信息
-		{
-			编队对象 = base.gameObject,
-			编队将领列表 = 编队将领信息
-		};
-		component.等待上坑队列表.Add(item);
-		int count = 编队将领信息.Count;
-		for (int i = 0; i < count; i++)
-		{
-			base.transform.GetChild(i).GetComponent<将领功能>().设置等待状态();
-		}
-	}
 }

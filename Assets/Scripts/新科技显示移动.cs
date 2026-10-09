@@ -14,7 +14,7 @@ public class 新科技显示移动 : MonoBehaviour
 	{
 	}
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		if (base.gameObject.activeSelf)
 		{
