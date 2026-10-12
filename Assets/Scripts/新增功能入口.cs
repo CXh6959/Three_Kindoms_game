@@ -28,6 +28,8 @@ public class 新增功能入口 : MonoBehaviour
 	private RectTransform 安全区域对象;
 	private RectTransform 内容对象;
 	private RectTransform 将神坛入口矩形;
+	private RectTransform 功能面板矩形;
+	private RectTransform 退出面板矩形;
 	private Text 标题文本;
 	private Text 状态文本;
 	private Font 界面字体;
@@ -80,6 +82,8 @@ public class 新增功能入口 : MonoBehaviour
 		安全区域对象 = null;
 		内容对象 = null;
 		将神坛入口矩形 = null;
+		功能面板矩形 = null;
+		退出面板矩形 = null;
 		标题文本 = null;
 		状态文本 = null;
 		if (scene.buildIndex >= 0)
@@ -123,20 +127,14 @@ public class 新增功能入口 : MonoBehaviour
 		缓存场景弹窗画布();
 		隐藏旧成就页签();
 
-		Button exit = 创建按钮("设置_退出游戏", 安全区域对象, "退出游戏", new Vector2(260f, 64f), new Vector2(0f, 92f), new Vector2(0.5f, 0f), 强调色, 27);
-		exit.onClick.AddListener(打开退出确认);
-		退出入口对象 = exit.gameObject;
-
-		Button altarEntry = 创建图片按钮("将神坛入口", 安全区域对象, "将神坛", Resources.Load<Texture2D>("界面图片/将神坛入口"), new Vector2(180f, 220f), Vector2.zero, new Vector2(0.59f, 0.37f));
-		altarEntry.onClick.AddListener(打开将神坛);
-		将神坛入口对象 = altarEntry.gameObject;
-		将神坛入口矩形 = altarEntry.GetComponent<RectTransform>();
+		创建设置退出入口();
+		创建基地将神坛入口();
 
 		Button achievementEntry = 创建按钮("轮回成就入口", 安全区域对象, "轮回成就", new Vector2(230f, 62f), new Vector2(-145f, 82f), new Vector2(1f, 0f), 强调色, 25);
 		achievementEntry.onClick.AddListener(打开成就);
 		成就入口对象 = achievementEntry.gameObject;
-		退出入口对象.SetActive(false);
-		将神坛入口对象.SetActive(false);
+		设置对象显示状态(退出入口对象, false);
+		设置对象显示状态(将神坛入口对象, false);
 		成就入口对象.SetActive(false);
 
 		面板对象 = 创建拉伸对象("新增功能遮罩", 界面根对象.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
@@ -146,6 +144,7 @@ public class 新增功能入口 : MonoBehaviour
 		遮罩按钮.onClick.AddListener(关闭面板);
 
 		RectTransform panel = 创建固定对象("新增功能面板", 面板对象.transform, new Vector2(1200f, 760f), Vector2.zero, new Vector2(0.5f, 0.5f));
+		功能面板矩形 = panel;
 		panel.gameObject.AddComponent<Image>().color = 背景色;
 		Button 阻止穿透 = panel.gameObject.AddComponent<Button>();
 		阻止穿透.transition = Selectable.Transition.None;
@@ -171,6 +170,7 @@ public class 新增功能入口 : MonoBehaviour
 		状态文本.rectTransform.anchorMax = new Vector2(1f, 0f);
 		状态文本.rectTransform.offsetMin = new Vector2(236f, 8f);
 		状态文本.rectTransform.offsetMax = new Vector2(-18f, 60f);
+		适配弹窗尺寸();
 
 		面板对象.SetActive(false);
 		创建手动副本入口();
@@ -185,6 +185,7 @@ public class 新增功能入口 : MonoBehaviour
 		遮罩按钮.onClick.AddListener(关闭退出确认);
 
 		RectTransform panel = 创建固定对象("退出确认面板", 退出确认对象.transform, new Vector2(620f, 300f), Vector2.zero, new Vector2(0.5f, 0.5f));
+		退出面板矩形 = panel;
 		panel.gameObject.AddComponent<Image>().color = 背景色;
 		Button 阻止穿透 = panel.gameObject.AddComponent<Button>();
 		阻止穿透.transition = Selectable.Transition.None;
@@ -200,11 +201,12 @@ public class 新增功能入口 : MonoBehaviour
 		Button confirm = 创建按钮("确认退出", panel, "退出", new Vector2(220f, 68f), new Vector2(125f, 62f), new Vector2(0.5f, 0f), 强调色, 28);
 		confirm.onClick.AddListener(确认退出游戏);
 		退出确认对象.SetActive(false);
+		适配弹窗尺寸();
 	}
 
 	private void 创建导航按钮(RectTransform parent, string label, int index, UnityEngine.Events.UnityAction action)
 	{
-		Button button = 创建按钮(label, parent, label, new Vector2(204f, 62f), new Vector2(102f, -40f - index * 74f), new Vector2(0.5f, 1f), 按钮色, 25);
+		Button button = 创建按钮(label, parent, label, new Vector2(204f, 62f), new Vector2(0f, -40f - index * 74f), new Vector2(0.5f, 1f), 按钮色, 25);
 		button.onClick.AddListener(action);
 	}
 
@@ -325,31 +327,117 @@ public class 新增功能入口 : MonoBehaviour
 		上次屏幕宽度 = Screen.width;
 		上次屏幕高度 = Screen.height;
 		上次安全区域 = safeArea;
+		适配弹窗尺寸();
+	}
+
+	private void 适配弹窗尺寸()
+	{
+		if (安全区域对象 == null)
+		{
+			return;
+		}
+		// 遮罩仍覆盖屏幕，面板按安全区域等比缩小，保持各分区的相对尺寸。
+		Canvas.ForceUpdateCanvases();
+		适配单个弹窗(功能面板矩形);
+		适配单个弹窗(退出面板矩形);
+	}
+
+	private void 适配单个弹窗(RectTransform panel)
+	{
+		if (panel == null || 安全区域对象.rect.width <= 0f || 安全区域对象.rect.height <= 0f)
+		{
+			return;
+		}
+		float scale = Mathf.Min(1f, Mathf.Min(安全区域对象.rect.width / (panel.sizeDelta.x + 40f), 安全区域对象.rect.height / (panel.sizeDelta.y + 40f)));
+		panel.localScale = Vector3.one * scale;
+		panel.position = 安全区域对象.TransformPoint(安全区域对象.rect.center);
+	}
+
+	private void 创建设置退出入口()
+	{
+		if (游戏设置界面对象 == null)
+		{
+			return;
+		}
+		Transform list = 查找子对象(游戏设置界面对象.transform, "设置列表布局");
+		Transform first = list == null ? null : list.Find("音乐开");
+		Transform template = list == null ? null : list.Find("难度高");
+		if (first == null || template == null)
+		{
+			Debug.LogError("无法创建退出图标：设置列表缺少音乐开或难度高选项。");
+			return;
+		}
+		退出入口对象 = Instantiate(template.gameObject, list, false);
+		退出入口对象.name = "设置_退出游戏";
+		RectTransform rect = 退出入口对象.GetComponent<RectTransform>();
+		RectTransform firstRect = first.GetComponent<RectTransform>();
+		rect.anchorMin = firstRect.anchorMin;
+		rect.anchorMax = firstRect.anchorMax;
+		rect.pivot = firstRect.pivot;
+		rect.sizeDelta = firstRect.sizeDelta;
+		GridLayoutGroup grid = list.GetComponent<GridLayoutGroup>();
+		if (grid != null)
+		{
+			grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+			grid.constraintCount = 6;
+			退出入口对象.transform.SetSiblingIndex(6);
+		}
+		else
+		{
+			rect.anchoredPosition = firstRect.anchoredPosition + new Vector2(0f, -(firstRect.rect.height + 45f));
+		}
+		Text[] labels = 退出入口对象.GetComponentsInChildren<Text>(true);
+		for (int i = 0; i < labels.Length; i++)
+		{
+			labels[i].text = "退出游戏";
+			labels[i].font = 界面字体;
+			labels[i].resizeTextForBestFit = true;
+			labels[i].resizeTextMinSize = 12;
+			labels[i].resizeTextMaxSize = 16;
+			labels[i].raycastTarget = false;
+		}
+		Button[] buttons = 退出入口对象.GetComponentsInChildren<Button>(true);
+		for (int i = 0; i < buttons.Length; i++)
+		{
+			// 替换整个事件，清除克隆项原来的持久化难度切换回调。
+			buttons[i].onClick = new Button.ButtonClickedEvent();
+			buttons[i].onClick.AddListener(打开退出确认);
+			Navigation navigation = buttons[i].navigation;
+			navigation.mode = Navigation.Mode.None;
+			buttons[i].navigation = navigation;
+		}
+	}
+
+	private void 创建基地将神坛入口()
+	{
+		if (校场布局对象 == null)
+		{
+			return;
+		}
+		Button entry = 创建图片按钮("将神坛入口", 校场布局对象.transform.parent, "将神坛", Resources.Load<Texture2D>("界面图片/将神坛入口"), new Vector2(96f, 110f), Vector2.zero, new Vector2(0.5f, 0.5f), 13);
+		entry.onClick.AddListener(打开将神坛);
+		将神坛入口对象 = entry.gameObject;
+		将神坛入口矩形 = entry.GetComponent<RectTransform>();
+		更新将神坛入口位置();
 	}
 
 	private void 更新将神坛入口位置()
 	{
-		if (校场布局对象 == null || 将神坛入口矩形 == null || 安全区域对象 == null)
+		if (校场布局对象 != null && 将神坛入口矩形 != null)
 		{
-			return;
+			// 与校场共用基地坐标系，位置对应文档中校场左下方的空地。
+			将神坛入口矩形.localPosition = 校场布局对象.transform.localPosition + new Vector3(-150f, -100f, 0f);
 		}
-		RectTransform 校场矩形 = 校场布局对象.transform as RectTransform;
-		if (校场矩形 == null)
+	}
+
+	private static Transform 查找子对象(Transform root, string name)
+	{
+		Transform[] children = root.GetComponentsInChildren<Transform>(true);
+		for (int i = 0; i < children.Length; i++)
 		{
-			return;
+			if (children[i].name == name) return children[i];
 		}
-		Canvas 校场画布 = 校场矩形.GetComponentInParent<Canvas>();
-		Camera 校场相机 = 校场画布 != null && 校场画布.renderMode != RenderMode.ScreenSpaceOverlay ? 校场画布.worldCamera : null;
-		Vector2 校场屏幕坐标 = RectTransformUtility.WorldToScreenPoint(校场相机, 校场矩形.position);
-		Vector2 局部坐标;
-		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(安全区域对象, 校场屏幕坐标, null, out 局部坐标))
-		{
-			return;
-		}
-		将神坛入口矩形.anchorMin = new Vector2(0.5f, 0.5f);
-		将神坛入口矩形.anchorMax = new Vector2(0.5f, 0.5f);
-		// 文档红圈位于校场左下方，偏移量以 1920x1080 参考分辨率表示。
-		将神坛入口矩形.anchoredPosition = 局部坐标 + new Vector2(-310f, -210f);
+		return null;
 	}
 
 	private void 显示概况()
@@ -407,57 +495,119 @@ public class 新增功能入口 : MonoBehaviour
 		神将图鉴条目 selected = list[神将页码];
 		当前神将名 = selected.名字;
 
-		RectTransform portraitRect = 创建固定对象("神将立绘", 内容对象, new Vector2(400f, 500f), new Vector2(215f, -22f), new Vector2(0f, 0.5f));
+		RectTransform portraitArea = 创建拉伸对象("神将立绘区", 内容对象, Vector2.zero, new Vector2(0.43f, 1f), new Vector2(12f, 78f), new Vector2(-18f, -12f));
+		portraitArea.gameObject.AddComponent<RectMask2D>();
+		RectTransform portraitRect = 创建拉伸对象("神将立绘", portraitArea, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 		Image portrait = portraitRect.gameObject.AddComponent<Image>();
 		portrait.sprite = 全局将领库.获取神将全身图(selected.名字);
 		portrait.preserveAspect = true;
 		portrait.raycastTarget = false;
 
-		Button prev = 创建按钮("上一页", 内容对象, "<", new Vector2(72f, 48f), new Vector2(54f, 26f), Vector2.zero, 按钮色, 28);
+		RectTransform pageArea = 创建拉伸对象("神将翻页区", 内容对象, Vector2.zero, new Vector2(0.43f, 0f), new Vector2(12f, 8f), new Vector2(-18f, 64f));
+		Button prev = 创建按钮("上一页", pageArea, "<", new Vector2(64f, 48f), new Vector2(32f, 0f), new Vector2(0f, 0.5f), 按钮色, 28);
 		prev.interactable = 神将页码 > 0;
 		prev.onClick.AddListener(() => { 神将页码--; 显示将神坛(); });
-		Button next = 创建按钮("下一页", 内容对象, ">", new Vector2(72f, 48f), new Vector2(374f, 26f), Vector2.zero, 按钮色, 28);
+		Button next = 创建按钮("下一页", pageArea, ">", new Vector2(64f, 48f), new Vector2(-32f, 0f), new Vector2(1f, 0.5f), 按钮色, 28);
 		next.interactable = 神将页码 < pageCount - 1;
 		next.onClick.AddListener(() => { 神将页码++; 显示将神坛(); });
-		Text page = 创建文本("页码", 内容对象, (神将页码 + 1) + " / " + pageCount, 22, TextAnchor.MiddleCenter, 次要文字色);
-		page.rectTransform.anchorMin = Vector2.zero;
-		page.rectTransform.anchorMax = Vector2.zero;
-		page.rectTransform.sizeDelta = new Vector2(220f, 48f);
-		page.rectTransform.anchoredPosition = new Vector2(214f, 26f);
-		Text name = 创建文本("神将名称", 内容对象, selected.名字, 36, TextAnchor.UpperLeft, 文字色);
-		name.rectTransform.anchorMin = new Vector2(0f, 0.82f);
-		name.rectTransform.anchorMax = new Vector2(1f, 1f);
-		name.rectTransform.offsetMin = new Vector2(440f, 0f);
-		name.rectTransform.offsetMax = new Vector2(-20f, -12f);
-		string detail = "基础武力 1000  基础智力 1000  基础统帅 2000\n" + (selected.已拥有 ? "已拥有" : "未拥有") + "  阶位 " + selected.阶位 + "\n\n" + 将神坛系统.获取合成材料说明(selected.名字) + "\n\n" + 将神坛系统.获取当前阶位说明(selected.名字);
-		Text description = 创建文本("神将说明", 内容对象, detail, 24, TextAnchor.UpperLeft, 次要文字色);
-		description.rectTransform.anchorMin = new Vector2(0f, 0.25f);
-		description.rectTransform.anchorMax = new Vector2(1f, 0.82f);
-		description.rectTransform.offsetMin = new Vector2(440f, 0f);
-		description.rectTransform.offsetMax = new Vector2(-20f, 0f);
+		Text page = 创建文本("页码", pageArea, (神将页码 + 1) + " / " + pageCount, 22, TextAnchor.MiddleCenter, 次要文字色);
+		page.rectTransform.offsetMin = new Vector2(76f, 0f);
+		page.rectTransform.offsetMax = new Vector2(-76f, 0f);
 
-		if (selected.可合成)
+		RectTransform details = 创建拉伸对象("神将详情区", 内容对象, new Vector2(0.45f, 0f), Vector2.one, new Vector2(8f, 8f), new Vector2(-12f, -12f));
+		Text name = 创建文本("神将名称", details, selected.名字, 36, TextAnchor.MiddleLeft, 文字色);
+		name.rectTransform.anchorMin = new Vector2(0f, 1f);
+		name.rectTransform.offsetMin = new Vector2(0f, -60f);
+		name.rectTransform.offsetMax = Vector2.zero;
+		Text ownership = 创建文本("拥有状态", details, (selected.已拥有 ? "已拥有" : "未拥有") + "  " + new[] { "初阶", "玄阶", "地阶", "天阶" }[Mathf.Clamp(selected.阶位, 0, 3)], 24, TextAnchor.MiddleLeft, 次要文字色);
+		ownership.rectTransform.anchorMin = new Vector2(0f, 1f);
+		ownership.rectTransform.offsetMin = new Vector2(0f, -100f);
+		ownership.rectTransform.offsetMax = new Vector2(0f, -64f);
+		RectTransform description = 创建神将说明滚动区(details);
+		添加神将说明段落(description, "基础属性", "基础属性", 文字色);
+		添加神将说明段落(description, "属性数值", "武力 1000  智力 1000\n统帅 2000", 次要文字色);
+		添加神将说明段落(description, "合成标题", "合成材料", 文字色);
+		添加神将说明段落(description, "合成材料", 将神坛系统.获取合成材料说明(selected.名字), 次要文字色);
+		添加神将说明段落(description, "技能标题", "技能介绍", 文字色);
+		添加神将说明段落(description, "技能介绍", 将神坛系统.获取当前阶位说明(selected.名字), 次要文字色);
+
+		RectTransform actions = 创建拉伸对象("神将操作区", details, Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 64f));
+		HorizontalLayoutGroup actionLayout = actions.gameObject.AddComponent<HorizontalLayoutGroup>();
+		actionLayout.spacing = 20f;
+		actionLayout.childControlWidth = true;
+		actionLayout.childControlHeight = true;
+		actionLayout.childForceExpandWidth = true;
+		actionLayout.childForceExpandHeight = true;
+		Button synthesize = 创建按钮("合成神将", actions, "合成", Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), 强调色, 26);
+		synthesize.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
+		synthesize.interactable = selected.可合成 && !selected.已拥有;
+		synthesize.onClick.AddListener(() =>
 		{
-			Button synthesize = 创建按钮("合成神将", 内容对象, "合成", new Vector2(210f, 62f), new Vector2(-250f, 38f), new Vector2(1f, 0f), 强调色, 26);
-			synthesize.onClick.AddListener(() =>
-			{
-				神将合成结果 result = 将神坛系统.合成(当前神将名);
-				显示将神坛();
-				显示状态(result.消息);
-			});
-		}
-		if (selected.已拥有)
+			神将合成结果 result = 将神坛系统.合成(当前神将名);
+			显示将神坛();
+			显示状态(result.消息);
+		});
+		Button advance = 创建按钮("神将升阶", actions, selected.阶位 >= 3 ? "已达天阶" : "升阶", Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), 按钮色, 26);
+		advance.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
+		advance.interactable = selected.已拥有 && selected.阶位 < 3;
+		advance.onClick.AddListener(() =>
 		{
-			Button advance = 创建按钮("神将升阶", 内容对象, "升阶", new Vector2(210f, 62f), new Vector2(-20f, 38f), new Vector2(1f, 0f), 按钮色, 26);
-			advance.onClick.AddListener(() =>
-			{
-				神将合成结果 result = 将神坛系统.升阶(当前神将名);
-				显示将神坛();
-				显示状态(result.消息);
-			});
-		}
+			神将合成结果 result = 将神坛系统.升阶(当前神将名);
+			显示将神坛();
+			显示状态(result.消息);
+		});
+		Canvas.ForceUpdateCanvases();
+		description.GetComponentInParent<ScrollRect>().verticalNormalizedPosition = 1f;
 		轮回进度类 progress = 获取进度();
 		显示状态("将神珠 " + progress.将神珠数量 + "  神将碎片 " + progress.神将碎片数量);
+	}
+
+	private RectTransform 创建神将说明滚动区(RectTransform parent)
+	{
+		RectTransform root = 创建拉伸对象("神将说明滚动区", parent, Vector2.zero, Vector2.one, new Vector2(0f, 84f), new Vector2(0f, -116f));
+		root.gameObject.AddComponent<Image>().color = Color.clear;
+		ScrollRect scroll = root.gameObject.AddComponent<ScrollRect>();
+		scroll.horizontal = false;
+		scroll.vertical = true;
+		scroll.movementType = ScrollRect.MovementType.Clamped;
+		scroll.scrollSensitivity = 30f;
+		RectTransform viewport = 创建拉伸对象("说明可视区域", root, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-20f, 0f));
+		viewport.gameObject.AddComponent<RectMask2D>();
+		RectTransform content = 创建拉伸对象("说明内容", viewport, new Vector2(0f, 1f), Vector2.one, Vector2.zero, Vector2.zero);
+		content.pivot = new Vector2(0.5f, 1f);
+		VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+		layout.spacing = 12f;
+		layout.padding = new RectOffset(0, 8, 4, 12);
+		layout.childControlWidth = true;
+		layout.childControlHeight = true;
+		layout.childForceExpandWidth = true;
+		layout.childForceExpandHeight = false;
+		ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+		fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+		scroll.viewport = viewport;
+		scroll.content = content;
+
+		RectTransform bar = 创建拉伸对象("说明滚动条", root, new Vector2(1f, 0f), Vector2.one, new Vector2(-12f, 0f), Vector2.zero);
+		bar.gameObject.AddComponent<Image>().color = 面板色;
+		Scrollbar scrollbar = bar.gameObject.AddComponent<Scrollbar>();
+		scrollbar.direction = Scrollbar.Direction.BottomToTop;
+		RectTransform handle = 创建拉伸对象("滑块", bar, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+		Image handleImage = handle.gameObject.AddComponent<Image>();
+		handleImage.color = 按钮色;
+		scrollbar.handleRect = handle;
+		scrollbar.targetGraphic = handleImage;
+		scroll.verticalScrollbar = scrollbar;
+		scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+		return content;
+	}
+
+	private void 添加神将说明段落(RectTransform parent, string name, string value, Color color)
+	{
+		Text text = 创建文本(name, parent, value, 24, TextAnchor.UpperLeft, color);
+		text.resizeTextForBestFit = false;
+		text.supportRichText = false;
+		text.lineSpacing = 1.15f;
+		text.gameObject.AddComponent<LayoutElement>().minHeight = 30f;
 	}
 
 	private void 显示抽奖()
@@ -681,6 +831,7 @@ public class 新增功能入口 : MonoBehaviour
 	private RectTransform 创建固定对象(string name, Transform parent, Vector2 size, Vector2 position, Vector2 anchor)
 	{
 		GameObject go = new GameObject(name, typeof(RectTransform));
+		go.layer = parent.gameObject.layer;
 		RectTransform rect = go.GetComponent<RectTransform>();
 		rect.SetParent(parent, false);
 		rect.anchorMin = anchor;
@@ -694,6 +845,7 @@ public class 新增功能入口 : MonoBehaviour
 	private RectTransform 创建拉伸对象(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
 	{
 		GameObject go = new GameObject(name, typeof(RectTransform));
+		go.layer = parent.gameObject.layer;
 		RectTransform rect = go.GetComponent<RectTransform>();
 		rect.SetParent(parent, false);
 		rect.anchorMin = anchorMin;
@@ -722,7 +874,7 @@ public class 新增功能入口 : MonoBehaviour
 		return button;
 	}
 
-	private Button 创建图片按钮(string name, Transform parent, string label, Texture2D texture, Vector2 size, Vector2 position, Vector2 anchor)
+	private Button 创建图片按钮(string name, Transform parent, string label, Texture2D texture, Vector2 size, Vector2 position, Vector2 anchor, int fontSize = 25)
 	{
 		RectTransform rect = 创建固定对象(name, parent, size, position, anchor);
 		Image image = rect.gameObject.AddComponent<Image>();
@@ -734,9 +886,10 @@ public class 新增功能入口 : MonoBehaviour
 		Button button = rect.gameObject.AddComponent<Button>();
 		button.targetGraphic = image;
 
-		RectTransform labelBackground = 创建拉伸对象("标题背景", rect, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(8f, 6f), new Vector2(-8f, 52f));
+		float labelHeight = fontSize + 12f;
+		RectTransform labelBackground = 创建拉伸对象("标题背景", rect, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(4f, 3f), new Vector2(-4f, labelHeight));
 		labelBackground.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
-		Text text = 创建文本("文本", labelBackground, label, 25, TextAnchor.MiddleCenter, 文字色);
+		Text text = 创建文本("文本", labelBackground, label, fontSize, TextAnchor.MiddleCenter, 文字色);
 		text.rectTransform.offsetMin = new Vector2(6f, 2f);
 		text.rectTransform.offsetMax = new Vector2(-6f, -2f);
 		return button;
@@ -754,7 +907,7 @@ public class 新增功能入口 : MonoBehaviour
 		text.horizontalOverflow = HorizontalWrapMode.Wrap;
 		text.verticalOverflow = VerticalWrapMode.Truncate;
 		text.resizeTextForBestFit = true;
-		text.resizeTextMinSize = Mathf.Max(14, fontSize - 8);
+		text.resizeTextMinSize = Mathf.Min(fontSize, Mathf.Max(10, fontSize - 8));
 		text.resizeTextMaxSize = fontSize;
 		text.raycastTarget = false;
 		return text;
