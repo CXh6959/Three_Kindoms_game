@@ -61,6 +61,7 @@ public class 全局任务脚本 : MonoBehaviour
 	{
 		UnityEngine.Debug.Log("任务初始化");
 		全局变量.提示类 = 提示类对象;
+		初始化脚本.修复系统名将();
 		成就系统.检查轮回成就();
 		if (!string.IsNullOrEmpty(全局变量.远程配置地址))
 		{
@@ -444,17 +445,27 @@ public class 全局任务脚本 : MonoBehaviour
 						{
 							num8 = 0;
 						}
-						if ((城池信息库类.规模 == 3 || 城池信息库类.规模 == 4) && num8 < 20)
+						bool 可触发名将协防 = 城池信息库类.规模 == 3 || 城池信息库类.规模 == 4;
+						if (可触发名将协防 && num8 < 20)
 						{
 							将领信息 将领信息 = 随机一个系统名将驻防城池();
 							if (将领信息 != null)
 							{
-								int count2 = list2.Count;
 								将领信息.详细信息.坑位颜色 = 1.0;
 								将领信息.详细信息.状态 = 1.0;
 								UnityEngine.Debug.Log(将领信息.将领属性.初始属性.名字 + "入场");
-								list2.Insert(UnityEngine.Random.Range(0, count2), 将领信息);
+								// 优先编入首批守军，避免名将一直排在延迟增援队列中。
+								list2.Insert(0, 将领信息);
+								全局变量.提示类.显示信息("名将" + 将领信息.将领属性.初始属性.名字 + "协防" + 城池信息库类.名称 + "，击败后有15%概率俘获，请到出征封地的俘虏页查看。");
 							}
+							else
+							{
+								UnityEngine.Debug.LogWarning("名将协防已触发但无可用名将：" + 城池信息库类.名称 + "，请检查系统名将是否已归属、被俘或正在出战。");
+							}
+						}
+						else if (可触发名将协防)
+						{
+							UnityEngine.Debug.Log("本次未触发名将协防：" + 城池信息库类.名称 + "，随机值=" + num8 + "，触发条件为小于20。");
 						}
 						int count3 = list2.Count;
 						int num11 = (int)Mathf.Floor(count3 / 5);
@@ -511,35 +522,44 @@ public class 全局任务脚本 : MonoBehaviour
 		{
 			要加入的战场.守方要渲染的编队将领列表.Add(要加入的编队);
 		}
+		else
+		{
+			// 战斗提前结束时，这批增援尚未生成将领对象，无法依赖其退出逻辑释放状态。
+			foreach (将领信息 将领 in 要加入的编队)
+			{
+				if (将领 != null && 将领.详细信息 != null && 将领.详细信息.身份 == 2.0 && 将领.详细信息.状态 == 1.0)
+				{
+					将领.详细信息.状态 = 0.0;
+				}
+			}
+		}
 	}
 
 	private 将领信息 随机一个系统名将驻防城池()
 	{
-		List<将领信息> list = 全局变量.所有玩家数据表[2].封地信息表[0].将领信息表;
 		List<将领信息> list2 = new List<将领信息>();
-		int count = list.Count;
-			for (int i = 0; i < count; i++)
+		foreach (封地信息 封地 in 全局变量.所有玩家数据表[2].封地信息表)
+		{
+			if (封地 == null || 封地.将领信息表 == null) continue;
+			foreach (将领信息 将领 in 封地.将领信息表)
 			{
-				if (list[i].详细信息.状态 != 0.0)
+				if (将领 == null || 将领.详细信息 == null || 将领.将领属性 == null || 将领.将领属性.初始属性 == null)
 				{
 					continue;
 				}
-				bool flag = true;
-			if (list[i].将领属性.初始属性.系列 != "名将")
-			{
-				flag = false;
-			}
-			if (flag)
-			{
-				list[i].将领配兵.ID = 104.0;
-				list[i].将领配兵.数量 = list[i].将领属性.最终属性.统兵;
-				list2.Add(list[i]);
+				if (将领.详细信息.状态 == 0.0 && 将领.将领属性.初始属性.系列 == "名将")
+				{
+					list2.Add(将领);
+				}
 			}
 		}
 		if (list2.Count > 0)
 		{
 			int index = UnityEngine.Random.Range(0, list2.Count);
-			return list2[index];
+			将领信息 名将 = list2[index];
+			名将.将领配兵.ID = 104.0;
+			名将.将领配兵.数量 = 名将.将领属性.最终属性.统兵;
+			return 名将;
 		}
 		return null;
 	}
