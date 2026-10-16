@@ -260,44 +260,8 @@ public class 初始化脚本 : MonoBehaviour
 		}
 	}
 
-	public static void 修复系统名将()
-	{
-		if (全局变量.所有玩家数据表 == null || 全局变量.所有玩家数据表.Count <= 2)
-		{
-			return;
-		}
-		初始化系统名将(全局变量.所有玩家数据表[2]);
-	}
-
 	private static void 初始化系统名将(玩家数据 系统玩家)
 	{
-		if (系统玩家 == null || 系统玩家.封地信息表 == null || 系统玩家.封地信息表.Count == 0)
-		{
-			return;
-		}
-		// 旧存档只补缺失名将，不重建玩家已获得或已被俘虏的名将。
-		HashSet<string> 已有名字 = new HashSet<string>();
-		foreach (玩家数据 玩家 in 全局变量.所有玩家数据表)
-		{
-			if (玩家 == null || 玩家.封地信息表 == null) continue;
-			foreach (封地信息 封地 in 玩家.封地信息表)
-			{
-				if (封地 == null || 封地.将领信息表 == null) continue;
-				foreach (将领信息 将领 in 封地.将领信息表)
-				{
-					if (将领 == null || 将领.将领属性 == null || 将领.将领属性.初始属性 == null) continue;
-					已有名字.Add(将领.将领属性.初始属性.名字);
-					if (玩家 == 系统玩家)
-					{
-						if (系统名将数据.是否附表名将(将领.将领属性.初始属性.名字))
-						{
-							将领.将领属性.初始属性.系列 = "名将";
-						}
-						系统玩家.将领ID标识 = Mathf.Max(系统玩家.将领ID标识, 将领.ID + 1);
-					}
-				}
-			}
-		}
 		for (int i = 0; i < 全局将领库.属性表.Count; i++)
 		{
 			将领属性库类 定义 = 全局将领库.属性表[i];
@@ -305,7 +269,6 @@ public class 初始化脚本 : MonoBehaviour
 			{
 				continue;
 			}
-			if (!已有名字.Add(定义.名字)) continue;
 			将领信息 将领 = new 将领信息();
 			将领.生成将领数据(定义);
 			将领.将领获取经验值(将领.获取升级需要经验(99.0));

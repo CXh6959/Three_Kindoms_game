@@ -155,7 +155,7 @@ public class 选择出征将领 : MonoBehaviour
 									.text = "城墙:" + 城池信息库类.城墙.ToString();
 									山贼信息对象.transform.GetChild(2).GetChild(3).GetChild(0)
 										.GetComponent<Text>()
-						.text = "【名将协防】\r\n" + ((城池信息库类.规模 == 3 || 城池信息库类.规模 == 4) ? "本城20%概率出现1位无归属名将\r\n击败后15%概率俘获\r\n俘获后在出征封地的【俘虏】页劝降" : "本城不触发名将协防\r\n名将仅在州城、都城出现") + "\r\n【攻克奖励】\r\n战功 + " + 城池信息库类.战功.ToString() + "\r\n国库铜钱 + 100000\r\n国库粮食 + 200000";
+										.text = "【名将协防】:\r\n名将协防几率:" + 城池信息库类.协防几率.ToString() + "%\r\n名将数量: " + 城池信息库类.协防数量f.ToString() + "-" + 城池信息库类.协防数量m.ToString() + "\r\n【攻克奖励】\r\n战功 + " + 城池信息库类.战功.ToString() + "\r\n国库铜钱 + 100000\r\n国库粮食 + 200000";
 									}
 
 									private void 显示山贼详情()

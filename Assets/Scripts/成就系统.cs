@@ -51,21 +51,6 @@ public static class 成就系统
 
 	public static bool 领取成就(string 成就ID)
 	{
-		return 领取成就(成就ID, true);
-	}
-
-	public static int 领取全部成就()
-	{
-		int count = 0;
-		foreach (成就定义 定义 in 获取已解锁成就())
-		{
-			if (领取成就(定义.ID, false)) count++;
-		}
-		return count;
-	}
-
-	private static bool 领取成就(string 成就ID, bool 显示提示)
-	{
 		检查轮回成就();
 		成就定义 定义 = 全局成就库.获取成就定义(成就ID);
 		if (定义 == null)
@@ -93,7 +78,7 @@ public static class 成就系统
 		}
 		进度.已领取 = true;
 		全局变量.轮回进度.保存();
-		if (显示提示 && 全局变量.提示类 != null)
+		if (全局变量.提示类 != null)
 		{
 			全局变量.提示类.显示信息("已领取成就奖励: " + 定义.奖励内容);
 		}

@@ -83,7 +83,7 @@ public static class 轮回副本系统
 		for (int j = 0; j < 出征将领.Count; j++)
 		{
 			将领信息 item = 出征将领[j];
-			if (item == null || item.详细信息 == null || item.将领配兵 == null || item.将领配兵.数量 <= 0.0 || item.详细信息.状态 != 0.0 || item.详细信息.身份 != index || list.Contains(item))
+			if (item == null || item.详细信息 == null || item.将领配兵 == null || item.将领配兵.数量 <= 0.0)
 			{
 				continue;
 			}
