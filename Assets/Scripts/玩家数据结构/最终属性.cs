@@ -22,6 +22,24 @@ namespace 玩家数据结构
 
 		public long 统帅加成剩余时间;
 
+		public void 修复无效数值()
+		{
+			武力 = 有效数值(武力);
+			智力 = 有效数值(智力);
+			统帅 = 有效数值(统帅);
+			攻击 = 有效数值(攻击);
+			防御 = 有效数值(防御);
+			统兵 = 有效数值(统兵);
+			生命值 = 有效数值(生命值);
+			体力上限 = 有效数值(体力上限);
+		}
+
+		private static double 有效数值(double value)
+		{
+			// 正常高属性不截断；阻止损坏数据把 NaN/Infinity 传入血条和战斗运算。
+			return double.IsNaN(value) || double.IsInfinity(value) || value < 0.0 ? 0.0 : value;
+		}
+
 		public void 增加持续时间()
 		{
 			long num = 3600L;

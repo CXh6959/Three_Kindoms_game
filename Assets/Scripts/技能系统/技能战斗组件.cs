@@ -195,7 +195,7 @@ public class 技能战斗组件 : MonoBehaviour
 			return 0.0;
 		}
 		string name = 将领.本将领信息.将领属性.初始属性.名字;
-		if (无敌结束 > Time.time || (name == "机关兽" && 普通攻击) || (name == "朱雀" && (普通攻击 || 伤害类型 == "spell")) || (name == "玄武" && (普通攻击 || 伤害类型 == "physical")) || ((name == "青龙" || name == "白虎") && (普通攻击 || 伤害类型 == "spell")) || (name == "蚩尤" && 伤害类型 != "fire"))
+		if (无敌结束 > Time.time || 战斗伤害规则.NPC免疫伤害(name, 伤害类型))
 		{
 			return 0.0;
 		}
@@ -227,7 +227,7 @@ public class 技能战斗组件 : MonoBehaviour
 	{
 		if (攻击者 != null && 武圣结束 > Time.time && 反击倍率 > 0f)
 		{
-			攻击者.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 反击倍率 / 100.0, "physical");
+			攻击者.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 反击倍率 / 100.0, "physical", 将领);
 		}
 	}
 
@@ -337,7 +337,7 @@ public class 技能战斗组件 : MonoBehaviour
 		{
 			List<将领功能> 敌方将领 = 获取敌方();
 			将领功能 target = 敌方将领.Count == 0 ? null : (rank < 2 ? 敌方将领[Random.Range(0, 敌方将领.Count)] : 获取最高攻击敌人());
-			if (target != null) target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0, "fire");
+			if (target != null) target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0, "fire", 将领);
 		}
 		else if (name == "神·荀彧")
 		{
@@ -427,8 +427,8 @@ public class 技能战斗组件 : MonoBehaviour
 		for (int i = 0; i < list.Count; i++)
 		{
 			double damage = 将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0;
-			if (普通攻击) list[i].扣除普通特殊伤害(damage, type);
-			else list[i].扣除技能伤害(damage, type);
+			if (普通攻击) list[i].扣除普通特殊伤害(damage, type, 将领);
+			else list[i].扣除技能伤害(damage, type, 将领);
 		}
 	}
 
@@ -436,7 +436,7 @@ public class 技能战斗组件 : MonoBehaviour
 	{
 		type = 转换伤害类型(type);
 		List<将领功能> list = 获取敌方();
-		if (list.Count > 0) list[Random.Range(0, list.Count)].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type);
+		if (list.Count > 0) list[Random.Range(0, list.Count)].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type, 将领);
 	}
 
 	private void 对敌方竖排伤害(double 倍率, string type, int 次数)
@@ -449,7 +449,7 @@ public class 技能战斗组件 : MonoBehaviour
 		{
 			for (int i = 0; i < list.Count; i++)
 			{
-				if (获取列(list[i]) == column) list[i].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type);
+				if (获取列(list[i]) == column) list[i].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type, 将领);
 			}
 		}
 	}
@@ -458,7 +458,7 @@ public class 技能战斗组件 : MonoBehaviour
 	{
 		type = 转换伤害类型(type);
 		List<将领功能> list = 获取敌方();
-		for (int i = 0; i < list.Count; i++) if (获取行(list[i]) == 0) list[i].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type);
+		for (int i = 0; i < list.Count; i++) if (获取行(list[i]) == 0) list[i].扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type, 将领);
 	}
 
 	private void 玄武技能()
@@ -469,7 +469,7 @@ public class 技能战斗组件 : MonoBehaviour
 			return;
 		}
 		double 倍率 = 5000.0 + 轮回系统.当前轮回数 * 1000.0;
-		target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, "physical");
+		target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, "physical", 将领);
 		技能战斗组件 component = target.GetComponent<技能战斗组件>();
 		if (component != null) component.添加状态("冰冻", 10f, 0.0);
 	}
@@ -576,7 +576,7 @@ public class 技能战斗组件 : MonoBehaviour
 		List<将领功能> list = 获取我方();
 		if (list.Count == 0) return;
 		将领功能 target = list[Random.Range(0, list.Count)];
-		target.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 0.05, "physical");
+		target.扣除普攻伤害(将领.本将领信息.将领属性.最终属性.攻击 * 0.05, 将领);
 	}
 
 	private string 转换伤害类型(string type)
@@ -677,7 +677,7 @@ public class 技能战斗组件 : MonoBehaviour
 	private void 记录普通攻击伤害(double 倍率, string type)
 	{
 		List<将领功能> list = 获取敌方();
-		for (int i = 0; i < list.Count; i++) list[i].扣除普通特殊伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type);
+		for (int i = 0; i < list.Count; i++) list[i].扣除普通特殊伤害(将领.本将领信息.将领属性.最终属性.攻击 * 倍率 / 100.0, type, 将领);
 	}
 
 	private 战斗系统 获取战斗()

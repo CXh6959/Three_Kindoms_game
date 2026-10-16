@@ -163,6 +163,7 @@ public class 新增功能入口 : MonoBehaviour
 		创建导航按钮(tabs, "将神坛", 1, 显示将神坛);
 		创建导航按钮(tabs, "元宝抽奖", 2, 显示抽奖);
 		创建导航按钮(tabs, "成就", 3, 显示成就);
+		创建导航按钮(tabs, "战场", 4, 显示战场);
 
 		内容对象 = 创建拉伸对象("功能内容", panel, Vector2.zero, Vector2.one, new Vector2(236f, 68f), new Vector2(-18f, -88f));
 		状态文本 = 创建文本("状态", panel, "", 23, TextAnchor.MiddleLeft, 次要文字色);
@@ -173,7 +174,7 @@ public class 新增功能入口 : MonoBehaviour
 		适配弹窗尺寸();
 
 		面板对象.SetActive(false);
-		创建手动副本入口();
+		绑定战场入口();
 	}
 
 	private void 创建退出确认界面()
@@ -414,7 +415,7 @@ public class 新增功能入口 : MonoBehaviour
 		{
 			return;
 		}
-		Button entry = 创建图片按钮("将神坛入口", 校场布局对象.transform.parent, "将神坛", Resources.Load<Texture2D>("界面图片/将神坛入口"), new Vector2(96f, 110f), Vector2.zero, new Vector2(0.5f, 0.5f), 13);
+		Button entry = 创建图片按钮("将神坛入口", 校场布局对象.transform.parent, "将神坛", Resources.Load<Texture2D>("界面图片/将神坛入口"), new Vector2(174f, 198f), Vector2.zero, new Vector2(0.5f, 0.5f), 22);
 		entry.onClick.AddListener(打开将神坛);
 		将神坛入口对象 = entry.gameObject;
 		将神坛入口矩形 = entry.GetComponent<RectTransform>();
@@ -426,7 +427,7 @@ public class 新增功能入口 : MonoBehaviour
 		if (校场布局对象 != null && 将神坛入口矩形 != null)
 		{
 			// 与校场共用基地坐标系，位置对应文档中校场左下方的空地。
-			将神坛入口矩形.localPosition = 校场布局对象.transform.localPosition + new Vector3(-150f, -100f, 0f);
+			将神坛入口矩形.localPosition = 校场布局对象.transform.localPosition + new Vector3(-180f, -110f, 0f);
 		}
 	}
 
@@ -564,7 +565,12 @@ public class 新增功能入口 : MonoBehaviour
 
 	private RectTransform 创建神将说明滚动区(RectTransform parent)
 	{
-		RectTransform root = 创建拉伸对象("神将说明滚动区", parent, Vector2.zero, Vector2.one, new Vector2(0f, 84f), new Vector2(0f, -116f));
+		return 创建垂直滚动区(parent, "神将说明滚动区", new Vector2(0f, 84f), new Vector2(0f, -116f));
+	}
+
+	private RectTransform 创建垂直滚动区(RectTransform parent, string name, Vector2 min, Vector2 max)
+	{
+		RectTransform root = 创建拉伸对象(name, parent, Vector2.zero, Vector2.one, min, max);
 		root.gameObject.AddComponent<Image>().color = Color.clear;
 		ScrollRect scroll = root.gameObject.AddComponent<ScrollRect>();
 		scroll.horizontal = false;
@@ -780,20 +786,111 @@ public class 新增功能入口 : MonoBehaviour
 		return false;
 	}
 
-	private void 创建手动副本入口()
+	private void 绑定战场入口()
 	{
-		选择出征将领[] 出征界面 = FindObjectsOfType<选择出征将领>(true);
-		for (int i = 0; i < 出征界面.Length; i++)
+		GameObject entry = 查找场景对象("主界面_战场");
+		Button button = entry == null ? null : entry.GetComponent<Button>();
+		if (button == null) return;
+		// 场景中的原战场回调目标为空，只替换这个入口，不修改将领等其他面板。
+		button.onClick = new Button.ButtonClickedEvent();
+		button.onClick.AddListener(() =>
 		{
-			选择出征将领 出征 = 出征界面[i];
-			if (出征 == null || 出征.transform.Find("轮回副本出征") != null)
-			{
-				continue;
-			}
-			Button button = 创建按钮("轮回副本出征", 出征.transform, "轮回副本", new Vector2(230f, 62f), new Vector2(-170f, 76f), new Vector2(1f, 0f), 强调色, 25);
-			button.interactable = 轮回副本系统.是否开启();
-			button.onClick.AddListener(出征.副本_出征选中将领);
+			面板对象.SetActive(true);
+			显示战场();
+		});
+	}
+
+	private void 显示战场()
+	{
+		清空内容("战场");
+		Text summary = 创建文本("副本信息", 内容对象, "轮回副本\n机关兽 · 蚩尤\n\n通关奖励\n轮回装备、神将碎片", 28, TextAnchor.UpperLeft, 文字色);
+		summary.rectTransform.offsetMin = new Vector2(24f, 160f);
+		summary.rectTransform.offsetMax = new Vector2(-24f, -36f);
+		Button dungeon = 创建按钮("战场轮回副本", 内容对象, "轮回副本", new Vector2(280f, 72f), new Vector2(-160f, 88f), new Vector2(0.5f, 0f), 强调色, 28);
+		dungeon.onClick.AddListener(显示轮回副本);
+		Button reports = 创建按钮("战场军情", 内容对象, "查看军情", new Vector2(280f, 72f), new Vector2(160f, 88f), new Vector2(0.5f, 0f), 按钮色, 28);
+		reports.onClick.AddListener(() =>
+		{
+			GameObject target = 查找场景对象("军情界面UI");
+			if (target == null) return;
+			关闭面板();
+			target.SetActive(true);
+		});
+		显示状态(轮回副本系统.是否开启() ? "轮回副本已解锁" : "第50轮回解锁，当前第" + 轮回系统.当前轮回数 + "轮回");
+	}
+
+	private void 显示轮回副本()
+	{
+		清空内容("战场 · 轮回副本");
+		if (!玩家数据可用())
+		{
+			显示状态("玩家数据尚未初始化。");
+			return;
 		}
+		if (!轮回副本系统.是否开启())
+		{
+			创建文本("副本未解锁", 内容对象, "第50轮回解锁\n当前第" + 轮回系统.当前轮回数 + "轮回", 32, TextAnchor.MiddleCenter, 文字色);
+			显示状态("通关奖励：轮回装备、神将碎片");
+			return;
+		}
+		if (全局变量.军情列表.Exists(item => item.战场类型 == 2))
+		{
+			显示战场();
+			显示状态("已有副本队伍，可在军情中查看进度。");
+			return;
+		}
+		List<将领信息> selected = new List<将领信息>();
+		RectTransform list = 创建垂直滚动区(内容对象, "副本选将", new Vector2(12f, 96f), new Vector2(-12f, -12f));
+		Button start = 创建按钮("副本开始挑战", 内容对象, "开始挑战", new Vector2(260f, 64f), new Vector2(-148f, 40f), new Vector2(0.5f, 0f), 强调色, 26);
+		start.interactable = false;
+		start.onClick.AddListener(() =>
+		{
+			if (轮回副本系统.发起副本(selected))
+			{
+				显示战场();
+				显示状态("副本出征成功，可在军情中查看进度。");
+			}
+			else
+			{
+				显示轮回副本();
+				显示状态("出征失败，将领状态已变化或已有副本队伍。");
+			}
+		});
+		Button back = 创建按钮("返回战场", 内容对象, "返回战场", new Vector2(260f, 64f), new Vector2(148f, 40f), new Vector2(0.5f, 0f), 按钮色, 26);
+		back.onClick.AddListener(显示战场);
+		List<将领信息> generals = 轮回副本系统.获取可出征将领(全局变量.本机身份);
+		foreach (将领信息 general in generals)
+		{
+			RectTransform row = 创建固定对象("副本将领" + general.ID, list, new Vector2(600f, 76f), Vector2.zero, new Vector2(0.5f, 1f));
+			Image background = row.gameObject.AddComponent<Image>();
+			background.color = 面板色;
+			LayoutElement element = row.gameObject.AddComponent<LayoutElement>();
+			element.minHeight = element.preferredHeight = 76f;
+			RectTransform box = 创建固定对象("勾选框", row, new Vector2(28f, 28f), new Vector2(24f, 0f), new Vector2(0f, 0.5f));
+			box.gameObject.AddComponent<Image>().color = 按钮色;
+			RectTransform mark = 创建固定对象("选中标记", box, new Vector2(18f, 18f), Vector2.zero, new Vector2(0.5f, 0.5f));
+			Image markImage = mark.gameObject.AddComponent<Image>();
+			markImage.color = 强调色;
+			Text label = 创建文本("将领信息", row, general.将领属性.初始属性.名字 + "  " + general.将领属性.成长点数.等级.ToString("0") + "级\n兵力 " + general.将领配兵.数量.ToString("0"), 22, TextAnchor.MiddleLeft, 文字色);
+			label.resizeTextForBestFit = false;
+			label.rectTransform.offsetMin = new Vector2(48f, 4f);
+			label.rectTransform.offsetMax = new Vector2(-12f, -4f);
+			Toggle toggle = row.gameObject.AddComponent<Toggle>();
+			toggle.targetGraphic = background;
+			toggle.graphic = markImage;
+			toggle.isOn = false;
+			toggle.onValueChanged.AddListener(value =>
+			{
+				if (value) selected.Add(general);
+				else selected.Remove(general);
+				start.interactable = selected.Count > 0;
+				显示状态("已选择 " + selected.Count + " 位将领");
+			});
+		}
+		if (generals.Count == 0) 添加神将说明段落(list, "无可出征将领", "暂无空闲且已配兵的将领", 次要文字色);
+		显示状态("可出征 " + generals.Count + " 位将领，已选择 0 位");
+		Canvas.ForceUpdateCanvases();
+		list.GetComponentInParent<ScrollRect>().verticalNormalizedPosition = 1f;
 	}
 
 	private static GameObject 查找场景对象(string name)
