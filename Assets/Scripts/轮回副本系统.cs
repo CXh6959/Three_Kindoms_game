@@ -61,6 +61,21 @@ public static class 轮回副本系统
 		return result;
 	}
 
+	public static List<将领信息> 获取可出征将领(int 玩家索引)
+	{
+		List<将领信息> result = new List<将领信息>();
+		if (全局变量.所有玩家数据表 == null || 玩家索引 < 0 || 玩家索引 >= 全局变量.所有玩家数据表.Count) return result;
+		foreach (封地信息 封地 in 全局变量.所有玩家数据表[玩家索引].封地信息表)
+		{
+			foreach (将领信息 将领 in 封地.将领信息表)
+			{
+				if (将领 != null && 将领.详细信息 != null && 将领.详细信息.身份 == 玩家索引 && 将领.详细信息.状态 == 0.0 &&
+					将领.将领配兵 != null && 将领.将领配兵.ID > 0 && 将领.将领配兵.数量 > 0.0) result.Add(将领);
+			}
+		}
+		return result;
+	}
+
 	public static bool 发起副本(List<将领信息> 出征将领, int 玩家索引 = -1)
 	{
 		if (!是否开启() || 出征将领 == null || 出征将领.Count == 0)
@@ -80,21 +95,24 @@ public static class 轮回副本系统
 			}
 		}
 		List<将领信息> list = new List<将领信息>();
+		List<将领信息> 可出征 = 获取可出征将领(index);
 		for (int j = 0; j < 出征将领.Count; j++)
 		{
 			将领信息 item = 出征将领[j];
-			if (item == null || item.详细信息 == null || item.将领配兵 == null || item.将领配兵.数量 <= 0.0 || item.详细信息.状态 != 0.0 || item.详细信息.身份 != index || list.Contains(item))
+			if (!可出征.Contains(item) || list.Contains(item))
 			{
-				continue;
+				return false;
 			}
-			item.详细信息.身份 = index;
-			item.详细信息.坑位颜色 = 0.0;
-			item.详细信息.状态 = 1.0;
 			list.Add(item);
 		}
 		if (list.Count == 0)
 		{
 			return false;
+		}
+		foreach (将领信息 item in list)
+		{
+			item.详细信息.坑位颜色 = 0.0;
+			item.详细信息.状态 = 1.0;
 		}
 		军情信息 info = new 军情信息();
 		info.战场类型 = 2;

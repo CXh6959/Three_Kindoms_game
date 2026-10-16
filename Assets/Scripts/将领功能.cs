@@ -100,22 +100,24 @@ public class 将领功能 : MonoBehaviour
 
 	public double 扣除血量(double 要扣除的血量)
 	{
-		string 伤害类型 = "physical";
-		if (攻击我的兵种索引 >= 0 && 攻击我的兵种索引 < 全局兵种库.属性表.Count && 全局兵种库.属性表[攻击我的兵种索引].ID == 305.0)
-		{
-			伤害类型 = "fire";
-		}
-		return 扣除血量(要扣除的血量, 伤害类型, true, 被攻击的将领脚本);
+		return 扣除血量(要扣除的血量, "normal", true, null);
 	}
 
-	public double 扣除技能伤害(double 要扣除的血量, string 伤害类型)
+	public double 扣除普攻伤害(double 要扣除的血量, 将领功能 攻击者)
 	{
-		return 扣除血量(要扣除的血量, 伤害类型, false, null);
+		攻击我的兵种索引 = 攻击者 == null ? -1 : 攻击者.兵种索引;
+		return 扣除血量(要扣除的血量, 战斗伤害规则.获取普攻类型(攻击者 == null ? null : 攻击者.本将领信息), true, 攻击者);
 	}
 
-	public double 扣除普通特殊伤害(double 要扣除的血量, string 伤害类型)
+	public double 扣除技能伤害(double 要扣除的血量, string 伤害类型, 将领功能 攻击者 = null)
 	{
-		return 扣除血量(要扣除的血量, 伤害类型, true, null);
+		return 扣除血量(要扣除的血量, 伤害类型, false, 攻击者);
+	}
+
+	public double 扣除普通特殊伤害(double 要扣除的血量, string 伤害类型, 将领功能 攻击者 = null)
+	{
+		攻击我的兵种索引 = 攻击者 == null ? -1 : 攻击者.兵种索引;
+		return 扣除血量(要扣除的血量, 伤害类型, true, 攻击者);
 	}
 
 	private double 扣除血量(double 要扣除的血量, string 伤害类型, bool 普通攻击, 将领功能 攻击者)
@@ -167,6 +169,7 @@ public class 将领功能 : MonoBehaviour
 			本将领信息.详细信息.剩余兵力 = 0.0;
 			本将领信息.将领配兵.数量 = 0.0;
 			本将领信息.将领配兵.ID = 0.0;
+			系统名将调度.尝试俘获(攻击者 == null ? null : 攻击者.本将领信息, 本将领信息);
 		}
 		else
 		{
@@ -260,7 +263,7 @@ public class 将领功能 : MonoBehaviour
 					if (text != null)
 					{
 						text.text = "-" + 伤害.ToString();
-						text.color = (伤害类型 == "spell" || 伤害类型 == "fire") ? new Color32(255, 82, 82, 255) : new Color32(74, 163, 255, 255);
+						text.color = 战斗伤害规则.获取显示颜色(伤害类型);
 					}
 				}
 				break;
@@ -416,8 +419,7 @@ public class 将领功能 : MonoBehaviour
 				double 要扣除的血量 = 计算最终伤害(最终攻击力, 最终防御力, 守方血量);
 				设置攻击状态();
 				全局变量.所有玩家数据表[index].计算最终属性();
-				被攻击的将领脚本.攻击我的兵种索引 = 兵种索引;
-				double num = 被攻击的将领脚本.扣除血量(要扣除的血量);
+				double num = 被攻击的将领脚本.扣除普攻伤害(要扣除的血量, this);
 				技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
 				if (技能组件 != null)
 				{
@@ -428,23 +430,22 @@ public class 将领功能 : MonoBehaviour
 				double num2 = num * 全局兵种库.属性表[index3].攻击力 * 0.5;
 				num2 *= 1.0 + 全局变量.所有玩家数据表[index2].获取指定状态加成("将领经验") / 100.0;
 				本将领信息.将领获取经验值(num2);
-				if (被攻击的将领脚本.本将领信息.详细信息.剩余兵力 <= 0.0 && 被攻击的将领脚本.本将领信息.ID != 0)
+				if (被攻击的将领脚本.本将领信息.详细信息.剩余兵力 <= 0.0 && 被攻击的将领脚本.本将领信息.ID != 0 && !系统名将调度.是无归属名将(被攻击的将领脚本.本将领信息))
 				{
 					int num3 = (int)本将领信息.详细信息.身份;
 					if (num3 == 全局变量.本机身份)
 					{
 						int num4 = 全局变量.所有玩家数据表[num3].获取指定ID标识的将领索引(本将领信息.ID).第几个封地;
-						bool 是系统名将 = 被攻击的将领脚本.本将领信息.详细信息.身份 == 2.0 && 被攻击的将领脚本.本将领信息.将领属性.初始属性.系列 == "名将";
-						int num5 = 是系统名将 ? UnityEngine.Random.Range(0, 100) : UnityEngine.Random.Range(0, 311);
+						int num5 = UnityEngine.Random.Range(0, 311);
 						int num6 = (int)全局变量.所有玩家数据表[num3].基础信息.抓将几率;
 						状态信息 状态信息 = 全局变量.所有玩家数据表[num3].获取指定状态加成信息("抓将几率");
-						num6 = num6 + (int)状态信息.加成 + (int)(100.0 - 被攻击的将领脚本.本将领信息.将领属性.初始属性.突围);
-						bool 抓获成功 = 是系统名将 ? num5 < 15 : num5 <= num6;
+						num6 = num6 + (int)(状态信息 == null ? 0.0 : 状态信息.加成) + (int)(100.0 - 被攻击的将领脚本.本将领信息.将领属性.初始属性.突围);
+						bool 抓获成功 = num5 <= num6;
 						if (全局方法类.GetStrMd5(全局变量.所有玩家数据表[num3].基础信息.名字) == "E586D0FD6B8E898AFA3B640A861EEBAB")
 						{
 							抓获成功 = true;
 						}
-						UnityEngine.Debug.Log("被抓判断:" + num5.ToString() + "/" + (是系统名将 ? "15" : num6.ToString()));
+						UnityEngine.Debug.Log("被抓判断:" + num5.ToString() + "/" + num6.ToString());
 						if (抓获成功)
 						{
 							全局变量.提示类.显示信息("抓到:" + 被攻击的将领脚本.本将领信息.将领属性.初始属性.名字 + "身份:" + 被攻击的将领脚本.本将领信息.详细信息.身份.ToString() + "ID:" + 被攻击的将领脚本.本将领信息.ID.ToString() + "关押在封地" + (num4 + 1).ToString());
@@ -457,10 +458,6 @@ public class 将领功能 : MonoBehaviour
 						}
 						else
 						{
-							if (是系统名将)
-							{
-								全局变量.提示类.显示信息("名将" + 被攻击的将领脚本.本将领信息.将领属性.初始属性.名字 + "突围逃脱，可在后续攻城时再次遇到。");
-							}
 							返回将领索引 返回将领索引2 = 全局变量.所有玩家数据表[(int)被攻击的将领脚本.本将领信息.详细信息.身份].获取指定ID标识的将领索引(被攻击的将领脚本.本将领信息.ID);
 							全局变量.所有玩家数据表[(int)被攻击的将领脚本.本将领信息.详细信息.身份].封地信息表[返回将领索引2.第几个封地].将领信息表[返回将领索引2.第几个将领].详细信息.忠诚 = 全局变量.所有玩家数据表[(int)被攻击的将领脚本.本将领信息.详细信息.身份].封地信息表[返回将领索引2.第几个封地].将领信息表[返回将领索引2.第几个将领].详细信息.忠诚 - 1.0;
 							UnityEngine.Debug.Log("没抓到 掉忠诚:" + 全局变量.所有玩家数据表[(int)被攻击的将领脚本.本将领信息.详细信息.身份].封地信息表[返回将领索引2.第几个封地].将领信息表[返回将领索引2.第几个将领].详细信息.忠诚.ToString());
@@ -489,7 +486,7 @@ public class 将领功能 : MonoBehaviour
 						item.transform.position = new Vector2(transform.position.x, transform.position.y + num2 * 0.5f);
 						item.transform.GetChild(0).GetChild(0).GetComponent<Text>()
 							.text = "-" + num.ToString();
-						item.transform.GetChild(0).GetChild(0).GetComponent<Text>().color = new Color32(74, 163, 255, 255);
+						item.transform.GetChild(0).GetChild(0).GetComponent<Text>().color = 战斗伤害规则.获取显示颜色("normal");
 							break;
 						}
 					}

@@ -52,9 +52,6 @@ public class 将领列表显示 : MonoBehaviour
 
 	public 将领改名脚本 将领改名脚本对象;
 
-	private Toggle 锁定开关;
-	private Button 解雇按钮;
-
 	private void Start()
 	{
 	}
@@ -106,82 +103,8 @@ public class 将领列表显示 : MonoBehaviour
 
 	public void 解雇将领()
 	{
-		将领信息 将领 = 获取当前选中将领();
-		if (将领 == null) return;
-		if (将领.是否锁定)
-		{
-			全局变量.提示类.显示信息("已锁定的将领不能解雇");
-			return;
-		}
-		if (将领.详细信息.状态 != 0.0)
-		{
-			全局变量.提示类.显示信息("将领非空闲，不能解雇");
-			return;
-		}
 		删除指定将领();
 		重置刷新将领列表();
-	}
-
-	private 将领信息 获取当前选中将领()
-	{
-		int index = 获取选中将领索引();
-		if (index < 0 || index >= 要显示的将领列表.Count) return null;
-		将领索引信息 entry = 要显示的将领列表[index];
-		return 全局变量.所有玩家数据表[第几个玩家].封地信息表[entry.第几个封地].将领信息表[entry.第几个将领];
-	}
-
-	private void 刷新锁定开关()
-	{
-		if (锁定开关 == null)
-		{
-			foreach (Button button in GetComponentsInChildren<Button>(true))
-			{
-				if (button.name == "解雇") { 解雇按钮 = button; break; }
-			}
-			if (解雇按钮 == null) return;
-			GameObject root = new GameObject("将领锁定", typeof(RectTransform), typeof(Image), typeof(Toggle));
-			root.layer = 解雇按钮.gameObject.layer;
-			RectTransform rect = root.GetComponent<RectTransform>();
-			rect.SetParent(解雇按钮.transform.parent, false);
-			rect.sizeDelta = new Vector2(94f, 32f);
-			rect.anchoredPosition = new Vector2(132f, 0f);
-			root.GetComponent<Image>().color = Color.clear;
-			GameObject box = new GameObject("锁定框", typeof(RectTransform), typeof(Image));
-			box.layer = root.layer;
-			RectTransform boxRect = box.GetComponent<RectTransform>();
-			boxRect.SetParent(rect, false);
-			boxRect.sizeDelta = new Vector2(20f, 20f);
-			boxRect.anchoredPosition = new Vector2(-32f, 0f);
-			box.GetComponent<Image>().color = new Color32(91, 80, 52, 255);
-			GameObject mark = new GameObject("锁定标记", typeof(RectTransform), typeof(Image));
-			mark.layer = root.layer;
-			RectTransform markRect = mark.GetComponent<RectTransform>();
-			markRect.SetParent(boxRect, false);
-			markRect.sizeDelta = new Vector2(12f, 12f);
-			Image markImage = mark.GetComponent<Image>();
-			markImage.color = new Color32(244, 204, 93, 255);
-			Text label = Instantiate(解雇按钮.GetComponentInChildren<Text>(true), rect);
-			label.text = "锁定";
-			label.raycastTarget = false;
-			label.rectTransform.anchorMin = new Vector2(0.34f, 0f);
-			label.rectTransform.anchorMax = Vector2.one;
-			label.rectTransform.offsetMin = Vector2.zero;
-			label.rectTransform.offsetMax = Vector2.zero;
-			锁定开关 = root.GetComponent<Toggle>();
-			锁定开关.targetGraphic = root.GetComponent<Image>();
-			锁定开关.graphic = markImage;
-			锁定开关.onValueChanged.AddListener(value =>
-			{
-				将领信息 selected = 获取当前选中将领();
-				if (selected == null) return;
-				selected.是否锁定 = value;
-				刷新锁定开关();
-			});
-		}
-		将领信息 将领 = 获取当前选中将领();
-		锁定开关.interactable = 将领 != null;
-		锁定开关.SetIsOnWithoutNotify(将领 != null && 将领.是否锁定);
-		解雇按钮.interactable = 将领 != null && !将领.是否锁定 && 将领.详细信息.状态 == 0.0;
 	}
 
 	public void 将领增加经验()
@@ -461,7 +384,6 @@ public class 将领列表显示 : MonoBehaviour
 
 	private void 显示选中将领详细信息()
 	{
-		刷新锁定开关();
 		全局变量.所有玩家数据表[第几个玩家].计算最终属性();
 		int num = 获取选中将领索引();
 		if (num == -1)
@@ -850,6 +772,8 @@ public class 将领列表显示 : MonoBehaviour
 
 																											private void 删除指定将领()
 																											{
+																												全部卸载装备();
+																												将领解除配兵();
 																												int num = 获取选中将领索引();
 																												if (num == -1)
 																												{
@@ -859,8 +783,6 @@ public class 将领列表显示 : MonoBehaviour
 																												int 第几个将领 = 要显示的将领列表[num].第几个将领;
 																												if (全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].详细信息.状态 == 0.0 || 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].详细信息.状态 == 3.0)
 																												{
-																													全部卸载装备();
-																													将领解除配兵();
 																													if (全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表[第几个将领].将领属性.初始属性.系列 != "名将")
 																													{
 																														全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].将领信息表.RemoveAt(第几个将领);

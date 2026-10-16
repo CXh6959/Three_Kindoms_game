@@ -59,6 +59,11 @@ public class 战斗系统 : MonoBehaviour
 
 	public bool 等待销毁战场;
 
+	private void OnDestroy()
+	{
+		系统名将调度.释放战场(this);
+	}
+
 	private void Start()
 	{
 		渲染坑位();
