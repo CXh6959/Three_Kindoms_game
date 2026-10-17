@@ -77,10 +77,44 @@ public class 战斗系统 : MonoBehaviour
 			伤害显示缓存表.Add(gameObject);
 		}
 		被攻击的城池 = 所有城池界面脚本.根据坐标获取指定城池(坐标x, 坐标y);
-		if (战场类型 == 1)
+		if (战场类型 == 1 && 被攻击的城池 != null && 城墙信息显示 != null)
 		{
-			城墙信息显示.text = 被攻击的城池.城墙.ToString();
+			城墙信息显示.font = Resources.Load<Font>("等级数字");
+			城墙信息显示.fontSize = 28;
+			城墙信息显示.resizeTextForBestFit = true;
+			城墙信息显示.resizeTextMinSize = 16;
+			城墙信息显示.resizeTextMaxSize = 28;
+			城墙信息显示.alignment = TextAnchor.MiddleCenter;
+			城墙信息显示.rectTransform.sizeDelta = new Vector2(220f, 48f);
+			城墙信息显示.rectTransform.localScale = new Vector3(0.025f, 0.025f, 1f);
+			城墙信息显示.rectTransform.anchoredPosition = new Vector2(0f, -1.2f);
+			城墙信息显示.text = 战斗数值格式.显示(被攻击的城池.城墙);
 		}
+	}
+
+	public double 扣除城墙(double 伤害, string 类型)
+	{
+		if (战斗结束 || 战场类型 != 1 || 被攻击的城池 == null) return 0.0;
+		double 实际伤害 = 战斗伤害规则.限制伤害(伤害, 被攻击的城池.城墙);
+		if (实际伤害 <= 0.0) return 0.0;
+		被攻击的城池.城墙 -= 实际伤害;
+		if (伤害显示缓存表 != null && 城墙血条对象 != null)
+		{
+			foreach (GameObject item in 伤害显示缓存表)
+			{
+				if (item == null || item.activeSelf) continue;
+				item.SetActive(true);
+				item.transform.position = 城墙血条对象.position;
+				Text 文本 = item.GetComponentInChildren<Text>(true);
+				if (文本 != null)
+				{
+					文本.text = "-" + 战斗数值格式.显示(实际伤害);
+					文本.color = 战斗伤害规则.获取显示颜色(类型);
+				}
+				break;
+			}
+		}
+		return 实际伤害;
 	}
 
 	private void 渲染坑位()
@@ -180,11 +214,11 @@ public class 战斗系统 : MonoBehaviour
 			double 城墙 = 被攻击的城池.城墙;
 			if (城墙 != 上次显示城墙)
 			{
-				城墙信息显示.text = 城墙.ToString();
+				if (城墙信息显示 != null) 城墙信息显示.text = 战斗数值格式.显示(城墙);
 				double num = 被攻击的城池.获取城墙上限();
 				double num2 = 城墙 > 0.0 && num > 0.0 ? 城墙 / num : 0.0;
 				float num3 = (float)num2;
-				城墙血条对象.localPosition = new Vector2(3f * num3, -0.15f);
+				if (城墙血条对象 != null) 城墙血条对象.localPosition = new Vector2(3f * Mathf.Clamp01(num3), -0.15f);
 				上次显示城墙 = 城墙;
 			}
 		}

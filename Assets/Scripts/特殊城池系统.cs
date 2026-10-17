@@ -86,9 +86,10 @@ public static class 特殊城池系统
 		result.将领属性.最终属性.统帅 = 定义.统帅 * scale;
 		result.将领属性.最终属性.攻击 = result.将领属性.最终属性.武力;
 		result.将领属性.最终属性.防御 = result.将领属性.最终属性.智力;
-		result.将领属性.最终属性.统兵 = Mathf.Max(1f, (float)(定义.统帅 * 3.0 * (名字 == "蚩尤" ? 2.0 : 1.5)));
+		result.将领属性.最终属性.统兵 = System.Math.Max(1.0, System.Math.Floor(定义.统帅 * 3.0 * (名字 == "蚩尤" ? 2.0 : 1.5) * 轮回系统.获取义军属性倍率()));
 		result.将领配兵.ID = 名字 == "蚩尤" ? 107.0 : 106.0;
 		result.将领配兵.数量 = result.将领属性.最终属性.统兵;
+		result.详细信息.剩余兵力 = result.将领配兵.数量;
 		return result;
 	}
 
