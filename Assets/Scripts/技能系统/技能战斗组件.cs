@@ -41,7 +41,7 @@ public class 技能战斗组件 : MonoBehaviour
 			Destroy(this);
 			return;
 		}
-		技能 = 全局技能库.获取将领技能(将领.本将领信息.将领属性.初始属性.名字);
+		技能 = 将领身份规则.获取技能(将领.本将领信息);
 		战斗 = 获取战斗();
 		怒气 = 0.0;
 		创建状态特效();
@@ -91,6 +91,8 @@ public class 技能战斗组件 : MonoBehaviour
 		}
 		if (怒气 >= 100.0)
 		{
+			// 没有敌军时辅助技能让出本次行动，避免满怒气循环而永远不攻城。
+			if (技能.类型 >= 3 && 将领.可攻击城墙() && 获取敌方().Count == 0) return false;
 			怒气 -= 100.0;
 			施放技能();
 			return true;
@@ -109,7 +111,7 @@ public class 技能战斗组件 : MonoBehaviour
 			return true;
 		}
 		int x = 轮回系统.当前轮回数;
-		string name = 将领.本将领信息.将领属性.初始属性.名字;
+		string name = 技能.神将名;
 		if (name == "蚩尤")
 		{
 			对敌方单体伤害(20000.0 + x * 1000.0, "physical");
@@ -194,8 +196,8 @@ public class 技能战斗组件 : MonoBehaviour
 			护盾层数--;
 			return 0.0;
 		}
-		string name = 将领.本将领信息.将领属性.初始属性.名字;
-		if (无敌结束 > Time.time || 战斗伤害规则.NPC免疫伤害(name, 伤害类型))
+		string name = 技能 == null ? "" : 技能.神将名;
+		if (无敌结束 > Time.time || (是特殊NPC() && 战斗伤害规则.NPC免疫伤害(name, 伤害类型)))
 		{
 			return 0.0;
 		}
@@ -220,7 +222,7 @@ public class 技能战斗组件 : MonoBehaviour
 				伤害 *= 伤害类型 == "physical" ? 2.0 : (伤害类型 == "spell" ? 0.5 : 1.0);
 			}
 		}
-		return Mathf.Max(0f, (float)伤害);
+		return System.Math.Max(0.0, 伤害);
 	}
 
 	public void 受击后(将领功能 攻击者)
@@ -260,7 +262,8 @@ public class 技能战斗组件 : MonoBehaviour
 
 	private void 执行进场效果()
 	{
-		string name = 将领.本将领信息.将领属性.初始属性.名字;
+		if (技能 == null) return;
+		string name = 技能.神将名;
 		if (name == "神·曹操" || name == "神·孙权" || name == "神·献帝")
 		{
 			增加我方怒气(25.0, false);
@@ -277,10 +280,16 @@ public class 技能战斗组件 : MonoBehaviour
 
 	private void 施放技能()
 	{
-		string name = 将领.本将领信息.将领属性.初始属性.名字;
+		string name = 技能.神将名;
 		int rank = 将领.本将领信息.阶位;
 		double value = 技能.获取阶位倍率(rank);
 		将领.显示技能施法特效(0.5f);
+		if (技能.类型 <= 2 && 将领.可攻击城墙() && 获取敌方().Count == 0)
+		{
+			int 次数 = name == "神·司马懿" ? 6 : name == "神·关羽" ? 3 : 1;
+			string 类型 = 技能.类型 == 0 ? "physical" : 技能.类型 == 2 ? "fire" : "spell";
+			将领.造成城墙伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0 * 次数, 转换伤害类型(类型));
+		}
 		if (name == "神·曹操")
 		{
 			增加我方怒气(value, false);
@@ -671,7 +680,7 @@ public class 技能战斗组件 : MonoBehaviour
 
 	private bool 是特殊NPC()
 	{
-		return 将领 != null && 将领.本将领信息 != null && 全局将领库.是否特殊NPC(将领.本将领信息.将领属性.初始属性.名字);
+		return 技能 != null && 全局将领库.是否特殊NPC(技能.神将名);
 	}
 
 	private void 记录普通攻击伤害(double 倍率, string type)

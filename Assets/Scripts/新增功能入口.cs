@@ -164,6 +164,7 @@ public class 新增功能入口 : MonoBehaviour
 		创建导航按钮(tabs, "元宝抽奖", 2, 显示抽奖);
 		创建导航按钮(tabs, "成就", 3, 显示成就);
 		创建导航按钮(tabs, "战场", 4, 显示战场);
+		创建导航按钮(tabs, "道具获取", 5, 显示道具获取);
 
 		内容对象 = 创建拉伸对象("功能内容", panel, Vector2.zero, Vector2.one, new Vector2(236f, 68f), new Vector2(-18f, -88f));
 		状态文本 = 创建文本("状态", panel, "", 23, TextAnchor.MiddleLeft, 次要文字色);
@@ -817,6 +818,40 @@ public class 新增功能入口 : MonoBehaviour
 			target.SetActive(true);
 		});
 		显示状态(轮回副本系统.是否开启() ? "轮回副本已解锁" : "第50轮回解锁，当前第" + 轮回系统.当前轮回数 + "轮回");
+	}
+
+	private void 显示道具获取()
+	{
+		清空内容("道具获取");
+		RectTransform 输入区域 = 创建固定对象("领取码输入框", 内容对象, new Vector2(420f, 68f), new Vector2(0f, 120f), new Vector2(0.5f, 0.5f));
+		Image 背景 = 输入区域.gameObject.AddComponent<Image>();
+		背景.color = 面板色;
+		Text 输入文本 = 创建文本("领取码", 输入区域, "", 28, TextAnchor.MiddleLeft, 文字色);
+		输入文本.rectTransform.offsetMin = new Vector2(18f, 8f);
+		输入文本.rectTransform.offsetMax = new Vector2(-18f, -8f);
+		InputField 输入框 = 输入区域.gameObject.AddComponent<InputField>();
+		输入框.targetGraphic = 背景;
+		输入框.textComponent = 输入文本;
+		输入框.contentType = InputField.ContentType.Alphanumeric;
+		输入框.characterLimit = 6;
+		Text 预览 = 创建文本("领取内容", 内容对象, "", 28, TextAnchor.MiddleCenter, 文字色);
+		预览.rectTransform.anchorMin = 预览.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+		预览.rectTransform.sizeDelta = new Vector2(600f, 80f);
+		预览.rectTransform.anchoredPosition = Vector2.zero;
+		输入框.onValueChanged.AddListener(value =>
+		{
+			string[] 名单 = GM名将领取.解析(value);
+			预览.text = 名单 == null ? "无效领取码" : string.Join("、", 名单) + "（各1名）";
+		});
+		输入框.text = "GM1001";
+		Button 领取 = 创建按钮("领取名将", 内容对象, "领取", new Vector2(240f, 68f), new Vector2(0f, -120f), new Vector2(0.5f, 0.5f), 强调色, 28);
+		领取.onClick.AddListener(() =>
+		{
+			string 消息;
+			GM名将领取.领取(输入框.text, out 消息);
+			显示状态(消息);
+		});
+		显示状态("");
 	}
 
 	private void 显示轮回副本()

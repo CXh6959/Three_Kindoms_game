@@ -24,7 +24,7 @@ public static class 轮回系统
 
 	public static double 获取义军属性倍率()
 	{
-		return 当前轮回数 <= 1 ? 1.0 : Mathf.Pow(1.5f, 当前轮回数 - 1);
+		return 当前轮回数 <= 1 ? 1.0 : System.Math.Pow(1.5, 当前轮回数 - 1);
 	}
 
 	public static int 获取将领等级上限()

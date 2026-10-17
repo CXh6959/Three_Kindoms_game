@@ -51,6 +51,13 @@ public static class 将神坛系统
 		return result;
 	}
 
+	public static string[] 获取GM对应原将(int 编号)
+	{
+		int index = 编号 - 1001;
+		if (index < 0 || index >= 神将名单.Length) return null;
+		return 神将名单[index] == "神·二乔" ? new string[] { "大乔", "小乔" } : new string[] { 神将名单[index].Substring(2) };
+	}
+
 	public static string 获取合成材料说明(string 神将名)
 	{
 		string[] 材料 = 获取合成材料(神将名);
@@ -99,7 +106,7 @@ public static class 将神坛系统
 			return 失败(result, "将神珠不足");
 		}
 		string[] 材料 = 获取合成材料(神将名);
-		if (材料 == null || 玩家.获取指定名字将领数量(材料[0]) < 10 || (材料.Length > 1 && 玩家.获取指定名字将领数量(材料[1]) < 10))
+		if (材料 == null || 玩家.获取指定名字将领数量(材料[0], true) < 10 || (材料.Length > 1 && 玩家.获取指定名字将领数量(材料[1], true) < 10))
 		{
 			return 失败(result, "合成名将材料不足");
 		}
@@ -143,11 +150,11 @@ public static class 将神坛系统
 		}
 		string[] 升阶材料 = 获取合成材料(神将名);
 		string 对应名将 = 升阶材料 == null ? "" : 升阶材料[0];
-		if (升阶材料 != null && 升阶材料.Length > 1 && 玩家.获取指定名字将领数量(升阶材料[1]) >= 10)
+		if (升阶材料 != null && 升阶材料.Length > 1 && 玩家.获取指定名字将领数量(升阶材料[1], true) >= 10)
 		{
 			对应名将 = 升阶材料[1];
 		}
-		bool 使用名将 = 对应名将 != "" && 玩家.获取指定名字将领数量(对应名将) >= 10;
+		bool 使用名将 = 对应名将 != "" && 玩家.获取指定名字将领数量(对应名将, true) >= 10;
 		if (使用名将)
 		{
 			玩家.消耗指定名字将领(对应名将, 10);
@@ -221,7 +228,7 @@ public static class 将神坛系统
 			for (int j = 0; j < 玩家.封地信息表[i].将领信息表.Count; j++)
 			{
 				将领信息 将领 = 玩家.封地信息表[i].将领信息表[j];
-				if (将领 != null && 将领.将领属性 != null && 将领.将领属性.初始属性.名字 == 神将名)
+				if (将领身份规则.匹配名字(将领, 神将名))
 				{
 					return Mathf.Clamp(将领.阶位, 0, 3);
 				}
@@ -237,7 +244,7 @@ public static class 将神坛系统
 			for (int j = 0; j < 玩家.封地信息表[i].将领信息表.Count; j++)
 			{
 				将领信息 将领 = 玩家.封地信息表[i].将领信息表[j];
-				if (将领 != null && 将领.将领属性 != null && 将领.将领属性.初始属性.名字 == 神将名)
+				if (将领身份规则.匹配名字(将领, 神将名))
 				{
 					将领.阶位 = Mathf.Clamp(阶位, 0, 3);
 				}

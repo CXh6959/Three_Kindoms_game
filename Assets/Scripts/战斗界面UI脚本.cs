@@ -44,14 +44,28 @@ public class 战斗界面UI脚本 : MonoBehaviour
 
 	public void 获取脚本对象()
 	{
-		战斗系统脚本对象 = 战斗地图对象.transform.GetChild(0).GetChild(0).GetChild(0)
-			.GetChild(0)
-			.GetChild(0)
-			.GetComponent<战斗系统>();
+		战斗系统脚本对象 = 战斗地图对象 == null ? null : 战斗地图对象.GetComponentInChildren<战斗系统>(true);
+		配置兵力文本(攻方兵力文本);
+		配置兵力文本(守方兵力文本);
 		上次战斗时间 = long.MinValue;
 		上次攻方兵力 = double.NaN;
 		上次守方兵力 = double.NaN;
 		下次刷新时间 = 0f;
+	}
+
+	private static void 配置兵力文本(Text 文本)
+	{
+		if (文本 == null) return;
+		文本.font = Resources.Load<Font>("等级数字");
+		文本.fontSize = 8;
+		文本.resizeTextForBestFit = true;
+		文本.resizeTextMinSize = 5;
+		文本.resizeTextMaxSize = 8;
+		文本.alignment = TextAnchor.MiddleCenter;
+		文本.horizontalOverflow = HorizontalWrapMode.Overflow;
+		文本.verticalOverflow = VerticalWrapMode.Truncate;
+		文本.raycastTarget = false;
+		文本.rectTransform.sizeDelta = new Vector2(51f, 11f);
 	}
 
 	public void 全军撤退()
@@ -80,12 +94,12 @@ public class 战斗界面UI脚本 : MonoBehaviour
 		}
 		if (战斗系统脚本对象.攻方兵力 != 上次攻方兵力)
 		{
-			攻方兵力文本.text = 战斗系统脚本对象.攻方兵力.ToString();
+			if (攻方兵力文本 != null) 攻方兵力文本.text = 战斗数值格式.显示(战斗系统脚本对象.攻方兵力);
 			上次攻方兵力 = 战斗系统脚本对象.攻方兵力;
 		}
 		if (战斗系统脚本对象.守方兵力 != 上次守方兵力)
 		{
-			守方兵力文本.text = 战斗系统脚本对象.守方兵力.ToString();
+			if (守方兵力文本 != null) 守方兵力文本.text = 战斗数值格式.显示(战斗系统脚本对象.守方兵力);
 			上次守方兵力 = 战斗系统脚本对象.守方兵力;
 		}
 	}

@@ -145,7 +145,7 @@ public class 将领功能 : MonoBehaviour
 				要扣除的血量 = 0.0;
 			}
 		}
-		要扣除的血量 = Mathf.Clamp((float)要扣除的血量, 0f, (float)本将领信息.详细信息.剩余兵力);
+		要扣除的血量 = 战斗伤害规则.限制伤害(要扣除的血量, 本将领信息.详细信息.剩余兵力);
 		if (要扣除的血量 <= 0.0)
 		{
 			return 0.0;
@@ -154,6 +154,10 @@ public class 将领功能 : MonoBehaviour
 		{
 			if (num == 全局变量.本机身份) 战斗系统脚本对象.记录损失兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
 			else 战斗系统脚本对象.记录击杀兵力信息(全局兵种库.属性表[兵种索引].ID, 要扣除的血量);
+		}
+		if (兵种索引 >= 0 && 兵种索引 < 全局兵种库.属性表.Count)
+		{
+			战斗伤害规则.结算经验(攻击者 == null ? null : 攻击者.本将领信息, 本将领信息, 要扣除的血量, 全局兵种库.属性表[兵种索引].攻击力);
 		}
 		本将领信息.详细信息.剩余兵力 -= 要扣除的血量;
 		if (本将领信息.详细信息.剩余兵力 <= 0.0 && 技能组件 != null && 技能组件.尝试复生())
@@ -213,7 +217,7 @@ public class 将领功能 : MonoBehaviour
 			return;
 		}
 		double old = 本将领信息.详细信息.剩余兵力;
-		本将领信息.详细信息.剩余兵力 = Mathf.Min((float)获取最大兵力(), (float)(old + 数量));
+		本将领信息.详细信息.剩余兵力 = System.Math.Min(获取最大兵力(), old + 数量);
 		本将领信息.将领配兵.数量 = 本将领信息.详细信息.剩余兵力;
 		if (战斗系统脚本对象 != null)
 		{
@@ -238,7 +242,7 @@ public class 将领功能 : MonoBehaviour
 	{
 		if (统兵对象 != null && 本将领信息 != null && 本将领信息.详细信息 != null)
 		{
-			统兵对象.text = 本将领信息.详细信息.剩余兵力.ToString();
+			统兵对象.text = 战斗数值格式.显示(本将领信息.详细信息.剩余兵力);
 		}
 	}
 
@@ -262,7 +266,7 @@ public class 将领功能 : MonoBehaviour
 					Text text = item.transform.GetChild(0).GetChild(0).GetComponent<Text>();
 					if (text != null)
 					{
-						text.text = "-" + 伤害.ToString();
+						text.text = "-" + 战斗数值格式.显示(伤害);
 						text.color = 战斗伤害规则.获取显示颜色(伤害类型);
 					}
 				}
@@ -394,7 +398,7 @@ public class 将领功能 : MonoBehaviour
 		private double 计算最终伤害(double 最终攻击力, double 最终防御力, double 守方血量)
 		{
 			double num = (最终攻击力 - 最终防御力) * 本将领信息.详细信息.剩余兵力 / 守方血量;
-			num = Mathf.Round((float)num);
+			num = System.Math.Round(num);
 			if (num < 0.0)
 			{
 				num = 0.0;
@@ -419,17 +423,12 @@ public class 将领功能 : MonoBehaviour
 				double 要扣除的血量 = 计算最终伤害(最终攻击力, 最终防御力, 守方血量);
 				设置攻击状态();
 				全局变量.所有玩家数据表[index].计算最终属性();
-				double num = 被攻击的将领脚本.扣除普攻伤害(要扣除的血量, this);
+				被攻击的将领脚本.扣除普攻伤害(要扣除的血量, this);
 				技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
 				if (技能组件 != null)
 				{
 					技能组件.普通攻击后();
 				}
-				int index2 = (int)被攻击的将领脚本.本将领信息.详细信息.身份;
-				int index3 = 被攻击的将领脚本.兵种索引;
-				double num2 = num * 全局兵种库.属性表[index3].攻击力 * 0.5;
-				num2 *= 1.0 + 全局变量.所有玩家数据表[index2].获取指定状态加成("将领经验") / 100.0;
-				本将领信息.将领获取经验值(num2);
 				if (被攻击的将领脚本.本将领信息.详细信息.剩余兵力 <= 0.0 && 被攻击的将领脚本.本将领信息.ID != 0 && !系统名将调度.是无归属名将(被攻击的将领脚本.本将领信息))
 				{
 					int num3 = (int)本将领信息.详细信息.身份;
@@ -469,31 +468,27 @@ public class 将领功能 : MonoBehaviour
 			return false;
 		}
 
+		public bool 可攻击城墙()
+		{
+			return 是否存活() && 战斗系统脚本对象 != null && !战斗系统脚本对象.战斗结束 &&
+				战斗系统脚本对象.战场类型 == 1 && 本将领信息.详细信息.坑位颜色 == 0.0 &&
+				战斗系统脚本对象.被攻击的城池 != null && 战斗系统脚本对象.被攻击的城池.城墙 > 0.0;
+		}
+
+		public double 造成城墙伤害(double 伤害, string 类型)
+		{
+			return 可攻击城墙() ? 战斗系统脚本对象.扣除城墙(伤害, 类型) : 0.0;
+		}
+
 		private void 攻击城墙()
 		{
-			if (本将领信息.详细信息.剩余兵力 > 0.0)
+			if (可攻击城墙() && 兵种索引 >= 0)
 			{
 				double num = 全局兵种库.属性表[兵种索引].攻击力 / 10.0;
-				num = (double)Mathf.Round((float)num) * 本将领信息.详细信息.剩余兵力;
-				战斗系统脚本对象.被攻击的城池.城墙 = 战斗系统脚本对象.被攻击的城池.城墙 - num;
-				foreach (GameObject item in 战斗系统脚本对象.伤害显示缓存表)
-				{
-					if (!item.activeSelf)
-					{
-						item.SetActive(value: true);
-						float num2 = UnityEngine.Random.Range(-2f, 2f);
-						Transform transform = base.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetChild(5).transform;
-						item.transform.position = new Vector2(transform.position.x, transform.position.y + num2 * 0.5f);
-						item.transform.GetChild(0).GetChild(0).GetComponent<Text>()
-							.text = "-" + num.ToString();
-						item.transform.GetChild(0).GetChild(0).GetComponent<Text>().color = 战斗伤害规则.获取显示颜色("normal");
-							break;
-						}
-					}
-					if (战斗系统脚本对象.被攻击的城池.城墙 < 0.0)
-					{
-						战斗系统脚本对象.被攻击的城池.城墙 = 0.0;
-					}
+				num = System.Math.Max(1.0, System.Math.Round(num)) * 本将领信息.详细信息.剩余兵力;
+				造成城墙伤害(num, 战斗伤害规则.获取普攻类型(本将领信息));
+				技能战斗组件 技能组件 = GetComponent<技能战斗组件>();
+				if (技能组件 != null) 技能组件.普通攻击后();
 					设置攻击状态();
 				}
 			}
@@ -772,7 +767,7 @@ public class 将领功能 : MonoBehaviour
 				血条信息对象.transform.parent = base.transform;
 				血条信息对象.transform.localPosition = new Vector2(0f, 2f);
 				统兵对象 = 血条信息对象.transform.GetChild(0).GetChild(0).GetComponent<Text>();
-				统兵对象.text = 本将领信息.详细信息.剩余兵力.ToString();
+				统兵对象.text = 战斗数值格式.显示(本将领信息.详细信息.剩余兵力);
 				血条位置对象 = 血条信息对象.transform.GetChild(3);
 				血条位置对象.localPosition = new Vector2(3f, -0.15f);
 				进度条位置对象 = 血条信息对象.transform.GetChild(5);
@@ -888,7 +883,7 @@ public class 将领功能 : MonoBehaviour
 
 			private void 更新显示统兵()
 			{
-				统兵对象.text = 本将领信息.详细信息.剩余兵力.ToString();
+				统兵对象.text = 战斗数值格式.显示(本将领信息.详细信息.剩余兵力);
 			}
 
 			private void 更新名字位置()
