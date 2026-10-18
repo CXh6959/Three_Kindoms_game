@@ -111,13 +111,41 @@ public class 将领功能 : MonoBehaviour
 
 	public double 扣除技能伤害(double 要扣除的血量, string 伤害类型, 将领功能 攻击者 = null)
 	{
+		要扣除的血量 = 结算技能增幅(要扣除的血量, 攻击者);
 		return 扣除血量(要扣除的血量, 伤害类型, false, 攻击者);
 	}
 
 	public double 扣除普通特殊伤害(double 要扣除的血量, string 伤害类型, 将领功能 攻击者 = null)
 	{
+		要扣除的血量 = 结算技能增幅(要扣除的血量, 攻击者);
 		攻击我的兵种索引 = 攻击者 == null ? -1 : 攻击者.兵种索引;
 		return 扣除血量(要扣除的血量, 伤害类型, true, 攻击者);
+	}
+
+	public double 获取技能攻击增幅()
+	{
+		int owner = (int)本将领信息.详细信息.身份;
+		if (owner < 0 || owner >= 全局变量.所有玩家数据表.Count) return 1.0;
+		玩家数据 玩家 = 全局变量.所有玩家数据表[owner];
+		技能战斗组件 技能 = GetComponent<技能战斗组件>();
+		return (1.0 + (玩家.科技信息.攻击类科技(本将领信息.将领属性.初始属性.职业) + 玩家.科技信息.国家攻击科技加成()) / 100.0) *
+			(1.0 + (玩家.获取指定状态加成("攻击") + 玩家.基础信息.攻击类称号加成()) / 100.0) *
+			(技能 == null ? 1.0 : 技能.获取攻击倍率());
+	}
+
+	private double 结算技能增幅(double 基础伤害, 将领功能 攻击者)
+	{
+		double result = 基础伤害 * (攻击者 == null ? 1.0 : 攻击者.获取技能攻击增幅());
+		int owner = (int)本将领信息.详细信息.身份;
+		if (owner < 0 || owner >= 全局变量.所有玩家数据表.Count) return result;
+		玩家数据 玩家 = 全局变量.所有玩家数据表[owner];
+		技能战斗组件 技能 = GetComponent<技能战斗组件>();
+		// 技能基数以兵力伤害计，防御和生命科技通过倍率减伤，不再重复套普攻公式。
+		double 防御倍率 = (1.0 + (玩家.科技信息.防御类科技(本将领信息.将领属性.初始属性.职业) + 玩家.科技信息.国家防御科技加成()) / 100.0) *
+			(1.0 + (玩家.获取指定状态加成("防御") + 玩家.基础信息.防御类称号加成()) / 100.0) *
+			(技能 == null ? 1.0 : 技能.获取防御倍率());
+		double 生命倍率 = (1.0 + 玩家.科技信息.生命类科技() / 100.0) * (1.0 + 玩家.基础信息.生命类称号加成() / 100.0);
+		return result / System.Math.Max(0.01, 防御倍率 * 生命倍率);
 	}
 
 	private double 扣除血量(double 要扣除的血量, string 伤害类型, bool 普通攻击, 将领功能 攻击者)
@@ -636,6 +664,7 @@ public class 将领功能 : MonoBehaviour
 					{
 						yield break;
 					}
+					if (战斗系统脚本对象 == null || 战斗系统脚本对象.全军撤退 || 战斗系统脚本对象.战斗结束) yield break;
 					if (!(检查血量情况() > 0.0))
 					{
 						break;
@@ -861,6 +890,9 @@ public class 将领功能 : MonoBehaviour
 
 			private void 将领显示模型()
 			{
+				对象 = 战斗模型资源.创建(本将领信息, transform);
+				if (对象 != null) return;
+				if (兵种索引 < 0) return;
 				int num = 全局兵种库.查询指定兵种的模型(全局兵种库.属性表[兵种索引].名称);
 				if (num != -1)
 				{
@@ -878,7 +910,8 @@ public class 将领功能 : MonoBehaviour
 
 			public void 设置将领模型图层(int 第几层)
 			{
-				base.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 第几层;
+				if (对象 == null) return;
+				foreach (SpriteRenderer 渲染 in 对象.GetComponentsInChildren<SpriteRenderer>(true)) 渲染.sortingOrder = 第几层;
 			}
 
 			private void 更新显示统兵()
@@ -954,20 +987,13 @@ public class 将领功能 : MonoBehaviour
 
 			private void FixedUpdate()
 			{
-				if (战斗系统脚本对象.全军撤退 || 战斗系统脚本对象.战斗结束)
+				if (战斗系统脚本对象 != null && (战斗系统脚本对象.全军撤退 || 战斗系统脚本对象.战斗结束))
 				{
 					if (本将领信息.详细信息.状态 == 1.0)
 					{
 						本将领信息.详细信息.状态 = 0.0;
 					}
-					if (本将领信息.详细信息.坑位颜色 == 0.0)
-					{
-						战斗系统脚本对象.攻方兵力 -= 本将领信息.详细信息.剩余兵力;
-					}
-					else if (本将领信息.详细信息.坑位颜色 == 1.0)
-					{
-						战斗系统脚本对象.守方兵力 -= 本将领信息.详细信息.剩余兵力;
-					}
+					StopAllCoroutines();
 					UnityEngine.Object.Destroy(base.gameObject);
 				}
 			}

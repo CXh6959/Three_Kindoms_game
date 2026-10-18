@@ -70,7 +70,7 @@ public class 战斗界面UI脚本 : MonoBehaviour
 
 	public void 全军撤退()
 	{
-		战斗系统脚本对象.全军撤退 = true;
+		if (战斗系统脚本对象 != null) 战斗系统脚本对象.请求撤军();
 	}
 
 	public void 显示兵力()

@@ -32,6 +32,7 @@ public class 技能战斗组件 : MonoBehaviour
 	private SpriteRenderer 状态特效对象;
 	private static Sprite 状态特效图;
 	private float 下次状态特效检查时间;
+	private bool 正在反击;
 
 	private void Start()
 	{
@@ -54,6 +55,7 @@ public class 技能战斗组件 : MonoBehaviour
 			return;
 		}
 		战斗 = 战斗 == null ? 获取战斗() : 战斗;
+		if (战斗 != null && (战斗.全军撤退 || 战斗.战斗结束)) return;
 		if (!已执行进场效果 && 战斗 != null)
 		{
 			已执行进场效果 = true;
@@ -227,9 +229,11 @@ public class 技能战斗组件 : MonoBehaviour
 
 	public void 受击后(将领功能 攻击者)
 	{
-		if (攻击者 != null && 武圣结束 > Time.time && 反击倍率 > 0f)
+		if (!正在反击 && 攻击者 != null && 武圣结束 > Time.time && 反击倍率 > 0f)
 		{
-			攻击者.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 反击倍率 / 100.0, "physical", 将领);
+			正在反击 = true;
+			try { 攻击者.扣除技能伤害(将领.本将领信息.将领属性.最终属性.攻击 * 反击倍率 / 100.0, "physical", 将领); }
+			finally { 正在反击 = false; }
 		}
 	}
 
@@ -284,11 +288,12 @@ public class 技能战斗组件 : MonoBehaviour
 		int rank = 将领.本将领信息.阶位;
 		double value = 技能.获取阶位倍率(rank);
 		将领.显示技能施法特效(0.5f);
+		if (name == "神·吕布") 添加状态("无双", 10f, 200.0);
 		if (技能.类型 <= 2 && 将领.可攻击城墙() && 获取敌方().Count == 0)
 		{
 			int 次数 = name == "神·司马懿" ? 6 : name == "神·关羽" ? 3 : 1;
 			string 类型 = 技能.类型 == 0 ? "physical" : 技能.类型 == 2 ? "fire" : "spell";
-			将领.造成城墙伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0 * 次数, 转换伤害类型(类型));
+			将领.造成城墙伤害(将领.本将领信息.将领属性.最终属性.攻击 * value / 100.0 * 次数 * 将领.获取技能攻击增幅(), 转换伤害类型(类型));
 		}
 		if (name == "神·曹操")
 		{
@@ -338,7 +343,6 @@ public class 技能战斗组件 : MonoBehaviour
 		}
 		else if (name == "神·吕布")
 		{
-			添加状态("无双", 10f, 200.0);
 			对敌方全体伤害(value, "physical", false);
 			增加自身怒气(50.0);
 		}

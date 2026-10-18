@@ -46,12 +46,15 @@ public class 编队将领移动 : MonoBehaviour
 
 	private IEnumerator 协程_编队移动()
 	{
+		战斗系统 战斗 = transform.parent == null || transform.parent.parent == null ? null : transform.parent.parent.GetComponent<战斗系统>();
 		while (base.transform.localPosition.x != 编队入场结束位置x)
 		{
+			if (战斗 == null || 战斗.全军撤退 || 战斗.战斗结束) yield break;
 			float maxDistanceDelta = 移动速度 * Time.deltaTime;
 			base.transform.localPosition = Vector2.MoveTowards(base.transform.localPosition, new Vector2(编队入场结束位置x, base.transform.localPosition.y), maxDistanceDelta);
 			yield return null;
 		}
+		if (战斗 == null || 战斗.全军撤退 || 战斗.战斗结束) yield break;
 		编队将领上坑 component = base.transform.parent.gameObject.transform.GetComponent<编队将领上坑>();
 		等待队列表信息 item = new 等待队列表信息
 		{

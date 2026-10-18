@@ -61,7 +61,39 @@ public class 战斗系统 : MonoBehaviour
 
 	private void OnDestroy()
 	{
+		释放参战将领();
+	}
+
+	public void 请求撤军()
+	{
+		if (战斗结束 || 等待销毁战场) return;
+		全军撤退 = true;
+		开始检测战斗结果 = true;
+	}
+
+	private void 释放参战将领()
+	{
+		释放待上场队列(攻方要渲染的编队将领列表);
+		释放待上场队列(守方要渲染的编队将领列表);
+		foreach (将领功能 将领 in GetComponentsInChildren<将领功能>(true))
+		{
+			将领.StopAllCoroutines();
+			将领信息 信息 = 将领.本将领信息;
+			if (信息 != null && 信息.详细信息.状态 == 1.0) 信息.详细信息.状态 = 0.0;
+		}
 		系统名将调度.释放战场(this);
+	}
+
+	private static void 释放待上场队列(List<List<将领信息>> 队列)
+	{
+		if (队列 == null) return;
+		foreach (List<将领信息> 编队 in 队列)
+		{
+			if (编队 == null) continue;
+			foreach (将领信息 将领 in 编队)
+				if (将领 != null && 将领.详细信息.状态 == 1.0) 将领.详细信息.状态 = 0.0;
+		}
+		队列.Clear();
 	}
 
 	private void Start()
@@ -205,7 +237,7 @@ public class 战斗系统 : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		if (!开始检测战斗结果)
+		if (!开始检测战斗结果 || 等待销毁战场)
 		{
 			return;
 		}
@@ -223,26 +255,15 @@ public class 战斗系统 : MonoBehaviour
 			}
 		}
 		double num4 = 0.0;
-		if (守方兵力 <= 0.0 || 攻方兵力 <= 0.0)
+		if (全军撤退)
 		{
-			if (全军撤退)
-			{
-				if (守方兵力 <= 0.0 && 攻方兵力 <= 0.0)
-				{
-					if (战场类型 == 1)
-					{
-						UnityEngine.Debug.Log("城池战斗撤退");
-						战斗结束 = true;
-						被攻击的城池.正在交战 = false;
-					}
-					else
-					{
-						UnityEngine.Debug.Log("山贼战斗撤退");
-						战斗结束 = true;
-					}
-				}
-			}
-			else if (战场类型 == 1)
+			// 不依赖浮点兵力扣到零；撤军也必须释放尚未上场的编队。
+			战斗结束 = true;
+			if (战场类型 == 1 && 被攻击的城池 != null) 被攻击的城池.正在交战 = false;
+		}
+		else if (守方兵力 <= 0.0 || 攻方兵力 <= 0.0)
+		{
+			if (战场类型 == 1)
 			{
 				if (守方兵力 <= 0.0 && 被攻击的城池.城墙 <= 0.0)
 				{
@@ -283,6 +304,8 @@ public class 战斗系统 : MonoBehaviour
 		{
 			return;
 		}
+		等待销毁战场 = true;
+		释放参战将领();
 		double num5 = 0.0;
 		double num6 = 0.0;
 		double num7 = 0.0;
@@ -327,6 +350,9 @@ public class 战斗系统 : MonoBehaviour
 			全局变量.战斗地图相机.SetActive(value: false);
 			全局变量.主界面UI对象.SetActive(value: true);
 			全局变量.战斗界面UI对象.SetActive(value: false);
+			战斗界面UI脚本 界面 = 全局变量.战斗界面UI对象.GetComponent<战斗界面UI脚本>();
+			if (界面 != null) 界面.开始显示兵力 = false;
+			正在观战 = false;
 		}
 		bool flag;
 		do
@@ -343,9 +369,8 @@ public class 战斗系统 : MonoBehaviour
 		}
 		while (!flag);
 		UnityEngine.Debug.Log("军情清理完毕!");
-		守方要渲染的编队将领列表 = null;
-		攻方要渲染的编队将领列表 = null;
-		伤害显示缓存表 = null;
+		攻方兵力 = 0.0;
+		守方兵力 = 0.0;
 		开始检测战斗结果 = false;
 		UnityEngine.Object.Destroy(base.gameObject.transform.parent.parent.parent.parent.parent.gameObject, 0.2f);
 	}
