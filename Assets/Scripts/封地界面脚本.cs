@@ -240,9 +240,8 @@ public class 封地界面脚本 : MonoBehaviour
 						gameObject.transform.localPosition = new Vector2(0f, 0f);
 						gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
 						封地建筑列表对象.GetChild(第几个建筑).GetChild(1).gameObject.SetActive(value: true);
-						封地建筑列表对象.GetChild(第几个建筑).GetChild(1).GetChild(2)
-							.GetComponent<Text>()
-							.text = 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].等级.ToString();
+						建筑等级显示.刷新(封地建筑列表对象.GetChild(第几个建筑).GetChild(1).GetChild(2).GetComponent<Text>(),
+							全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].建筑信息表[第几个建筑].等级);
 							封地建筑列表对象.GetChild(第几个建筑).GetChild(1).GetChild(3)
 								.GetComponent<Image>()
 								.sprite = 全局变量.封地所有建筑名字[类型];

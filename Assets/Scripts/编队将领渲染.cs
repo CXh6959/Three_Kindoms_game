@@ -17,7 +17,7 @@ public class 编队将领渲染 : MonoBehaviour
 
 	private void 开始渲染编队将领()
 	{
-		if (战斗 == null)
+		if (战斗 == null || 战斗.全军撤退 || 战斗.战斗结束)
 		{
 			return;
 		}
@@ -111,7 +111,7 @@ public class 编队将领渲染 : MonoBehaviour
 
 	private void Update()
 	{
-		if (战斗 == null)
+		if (战斗 == null || 战斗.全军撤退 || 战斗.战斗结束)
 		{
 			return;
 		}

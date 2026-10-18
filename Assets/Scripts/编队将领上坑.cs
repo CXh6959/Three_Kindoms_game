@@ -21,6 +21,7 @@ public class 编队将领上坑 : MonoBehaviour
 	{
 		while (true)
 		{
+			if (战斗系统脚本对象 == null || 战斗系统脚本对象.全军撤退 || 战斗系统脚本对象.战斗结束) yield break;
 			if (等待上坑队列表.Count > 0 && 等待上坑队列表[0].编队将领列表.Count > 0)
 			{
 				int num = 全局兵种库.查询指定ID的索引(等待上坑队列表[0].编队将领列表[0].将领配兵.ID);
@@ -269,27 +270,27 @@ public class 编队将领上坑 : MonoBehaviour
 			case 1:
 			case 6:
 			case 11:
-				将领对象.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 3;
+				将领对象.GetComponent<将领功能>().设置将领模型图层(3);
 				break;
 			case 0:
 			case 5:
 			case 10:
-				将领对象.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 2;
+				将领对象.GetComponent<将领功能>().设置将领模型图层(2);
 				break;
 			case 2:
 			case 7:
 			case 12:
-				将领对象.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 4;
+				将领对象.GetComponent<将领功能>().设置将领模型图层(4);
 				break;
 			case 3:
 			case 8:
 			case 13:
-				将领对象.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 5;
+				将领对象.GetComponent<将领功能>().设置将领模型图层(5);
 				break;
 			case 4:
 			case 9:
 			case 14:
-				将领对象.transform.GetChild(2).GetComponent<SpriteRenderer>().sortingOrder = 6;
+				将领对象.GetComponent<将领功能>().设置将领模型图层(6);
 				break;
 			}
 			StartCoroutine(移动将领对象(将领对象));
@@ -304,6 +305,7 @@ public class 编队将领上坑 : MonoBehaviour
 	{
 		while (true)
 		{
+			if (战斗系统脚本对象 == null || 战斗系统脚本对象.全军撤退 || 战斗系统脚本对象.战斗结束) yield break;
 			float maxDistanceDelta = 35f * Time.deltaTime;
 			if (!将领对象)
 			{
