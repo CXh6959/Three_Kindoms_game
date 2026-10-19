@@ -14,4 +14,11 @@ public class 军情信息
 	public List<将领信息> 队列将领列表 = new List<将领信息>();
 
 	public bool 已进入战场;
+
+	public bool 是战场增援;
+
+	public int 增援方;
+
+	[System.NonSerialized]
+	public 战斗系统 增援目标;
 }

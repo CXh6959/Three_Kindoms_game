@@ -22,6 +22,9 @@ public class 兵营脚本 : MonoBehaviour
 
 	public int 兵营类型 = 4;
 
+	private ScrollRect 兵种滚动;
+	private int 上次兵营类型 = -1;
+
 	public void 刷新显示()
 	{
 		确保特殊兵种条目();
@@ -37,6 +40,7 @@ public class 兵营脚本 : MonoBehaviour
 			兵种列表对象.transform.GetChild(4).gameObject.SetActive(特殊兵种已开启);
 		}
 		int 显示兵种数量 = 特殊兵种已开启 && 兵种列表对象.transform.childCount > 4 ? 5 : 4;
+		配置兵种滚动(显示兵种数量);
 		for (int i = 0; i < 显示兵种数量; i++)
 		{
 			int 兵种ID = (兵营类型 - 3) * 100 + i + 1;
@@ -48,10 +52,17 @@ public class 兵营脚本 : MonoBehaviour
 
 			Transform 条目 = 兵种列表对象.transform.GetChild(i);
 			int 图片索引 = 全局兵种库.查询指定兵种的图片(兵种.名称);
-			if (图片索引 >= 0 && 全局变量.所有兵种图片资源表 != null && 图片索引 < 全局变量.所有兵种图片资源表.Length)
+			Image 头像 = 条目.GetChild(1).GetComponent<Image>();
+			Sprite 新图片 = i == 4 ? 战斗模型资源.获取图片(兵种.名称) : null;
+			if (新图片 != null)
 			{
-				条目.GetChild(1).GetComponent<Image>().sprite = 全局变量.所有兵种图片资源表[图片索引];
+				头像.sprite = 新图片;
 			}
+			else if (图片索引 >= 0 && 全局变量.所有兵种图片资源表 != null && 图片索引 < 全局变量.所有兵种图片资源表.Length)
+			{
+				头像.sprite = 全局变量.所有兵种图片资源表[图片索引];
+			}
+			头像.preserveAspect = true;
 
 			double 已有数量 = 全局变量.所有玩家数据表[第几个玩家].获取指定兵种ID总数(兵种ID);
 			Transform 名称区域 = 条目.GetChild(2);
@@ -73,6 +84,75 @@ public class 兵营脚本 : MonoBehaviour
 			条目.GetChild(10).GetComponent<Text>().text = 兵种.攻击速度.ToString();
 			条目.GetChild(12).GetComponent<Text>().text = 兵种.移动速度.ToString();
 			条目.GetChild(14).GetComponent<Text>().text = 兵种.占用人口.ToString();
+		}
+	}
+
+	private void 配置兵种滚动(int 数量)
+	{
+		RectTransform 内容 = 兵种列表对象.GetComponent<RectTransform>();
+		if (兵种滚动 == null)
+		{
+			GameObject 容器 = new GameObject("兵种滚动区域", typeof(RectTransform), typeof(ScrollRect));
+			容器.layer = 兵种列表对象.layer;
+			RectTransform 区域 = 容器.GetComponent<RectTransform>();
+			区域.SetParent(内容.parent, false);
+			区域.anchorMin = 区域.anchorMax = new Vector2(0.5f, 0.5f);
+			区域.sizeDelta = new Vector2(404f, 228f);
+			区域.anchoredPosition = new Vector2(-3.86f, -14f);
+			GameObject 视口对象 = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+			视口对象.layer = 容器.layer;
+			RectTransform 视口 = 视口对象.GetComponent<RectTransform>();
+			视口.SetParent(区域, false);
+			视口.anchorMin = Vector2.zero;
+			视口.anchorMax = Vector2.one;
+			视口.offsetMin = Vector2.zero;
+			视口.offsetMax = new Vector2(-12f, 0f);
+			视口对象.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
+			内容.SetParent(视口, false);
+			内容.anchorMin = new Vector2(0f, 1f);
+			内容.anchorMax = new Vector2(1f, 1f);
+			内容.pivot = new Vector2(0.5f, 1f);
+			内容.anchoredPosition = Vector2.zero;
+			GridLayoutGroup 布局 = 内容.GetComponent<GridLayoutGroup>();
+			布局.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+			布局.constraintCount = 1;
+			布局.cellSize = new Vector2(392f, 61f);
+			布局.spacing = new Vector2(0f, 3f);
+			兵种滚动 = 容器.GetComponent<ScrollRect>();
+			兵种滚动.content = 内容;
+			兵种滚动.viewport = 视口;
+			兵种滚动.horizontal = false;
+			兵种滚动.vertical = true;
+			兵种滚动.movementType = ScrollRect.MovementType.Clamped;
+			兵种滚动.scrollSensitivity = 24f;
+			GameObject 滚动条对象 = new GameObject("Scrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+			滚动条对象.layer = 容器.layer;
+			RectTransform 条区域 = 滚动条对象.GetComponent<RectTransform>();
+			条区域.SetParent(区域, false);
+			条区域.anchorMin = new Vector2(1f, 0f);
+			条区域.anchorMax = new Vector2(1f, 1f);
+			条区域.pivot = new Vector2(1f, 0.5f);
+			条区域.sizeDelta = new Vector2(8f, 0f);
+			滚动条对象.GetComponent<Image>().color = new Color(0.05f, 0.16f, 0.14f, 1f);
+			GameObject 滑块对象 = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+			滑块对象.layer = 容器.layer;
+			RectTransform 滑块 = 滑块对象.GetComponent<RectTransform>();
+			滑块.SetParent(条区域, false);
+			滑块.sizeDelta = Vector2.zero;
+			Image 滑块图片 = 滑块对象.GetComponent<Image>();
+			滑块图片.color = new Color(0.68f, 0.57f, 0.3f, 1f);
+			Scrollbar 滚动条 = 滚动条对象.GetComponent<Scrollbar>();
+			滚动条.handleRect = 滑块;
+			滚动条.targetGraphic = 滑块图片;
+			滚动条.direction = Scrollbar.Direction.BottomToTop;
+			兵种滚动.verticalScrollbar = 滚动条;
+		}
+		内容.sizeDelta = new Vector2(0f, Mathf.Max(228f, 数量 * 64f - 3f));
+		if (上次兵营类型 != 兵营类型)
+		{
+			兵种滚动.StopMovement();
+			兵种滚动.verticalNormalizedPosition = 1f;
+			上次兵营类型 = 兵营类型;
 		}
 	}
 

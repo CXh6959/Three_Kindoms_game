@@ -19,6 +19,8 @@ public class 战斗界面UI脚本 : MonoBehaviour
 
 	public bool 开始显示兵力;
 
+	public 选择出征将领 增援界面模板;
+
 	private float 下次刷新时间;
 
 	private long 上次战斗时间 = long.MinValue;
@@ -71,6 +73,21 @@ public class 战斗界面UI脚本 : MonoBehaviour
 	public void 全军撤退()
 	{
 		if (战斗系统脚本对象 != null) 战斗系统脚本对象.请求撤军();
+	}
+
+	public void 打开增援界面()
+	{
+		if (增援界面模板 == null || !战场增援规则.可以增援(战斗系统脚本对象, 全局变量.本机身份))
+		{
+			全局变量.提示类.显示信息("当前战场已结束或没有己方部队，无法增援");
+			return;
+		}
+		战斗系统 目标 = 战斗系统脚本对象;
+		返回主界面();
+		选择出征将领 界面 = Instantiate(增援界面模板, 增援界面模板.transform.parent, false);
+		界面.name = "战场增援界面";
+		界面.transform.SetAsLastSibling();
+		界面.打开增援(目标);
 	}
 
 	public void 显示兵力()

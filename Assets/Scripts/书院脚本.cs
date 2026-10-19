@@ -135,7 +135,7 @@ public class 书院脚本 : MonoBehaviour
 		Text component11 = 书院列表对象.transform.GetChild(9).GetChild(3).GetComponent<Text>();
 		component2 = 书院列表对象.transform.GetChild(9).GetChild(4).GetComponent<Text>();
 		component11.text = "(" + 工程设计.ToString() + "级)";
-		if (工程设计 < 10.0)
+		if (工程设计 < 轮回数值规则.科技等级上限(9, 轮回系统.当前轮回数))
 		{
 			component2.text = "升级:步兵的防御增加" + ((工程设计 + 1.0) * 5.0).ToString() + "%";
 		}
@@ -436,7 +436,7 @@ public class 书院脚本 : MonoBehaviour
 		else if (书院列表对象.transform.GetChild(9).GetChild(5).gameObject.activeSelf)
 		{
 			double 阵法技巧 = 全局变量.所有玩家数据表[第几个玩家].科技信息.阵法技巧;
-			if ((double)等级 > 阵法技巧 && 阵法技巧 < 10.0)
+			if (可升级轮回科技(阵法技巧, 等级, 9))
 			{
 				double num10 = 获取升级需要铜钱(2.0, 阵法技巧);
 				if (全局变量.所有玩家数据表[第几个玩家].财产信息.扣除铜钱(num10))
@@ -487,7 +487,7 @@ public class 书院脚本 : MonoBehaviour
 		else if (书院列表对象.transform.GetChild(12).GetChild(5).gameObject.activeSelf)
 		{
 			double 战车设计 = 全局变量.所有玩家数据表[第几个玩家].科技信息.战车设计;
-			if (可升级轮回科技(战车设计, 等级))
+			if (可升级轮回科技(战车设计, 等级, 12))
 			{
 				double num13 = 获取升级需要铜钱(2.0, 战车设计);
 				if (全局变量.所有玩家数据表[第几个玩家].财产信息.扣除铜钱(num13))
@@ -683,11 +683,11 @@ public class 书院脚本 : MonoBehaviour
 		全局变量.所有玩家数据表[第几个玩家].计算最终属性();
 	}
 
-	private bool 可升级轮回科技(double 当前等级, int 书院等级)
+	private bool 可升级轮回科技(double 当前等级, int 书院等级, int 科技索引 = 6)
 	{
 		int 书院上限 = 全局变量.所有玩家数据表[第几个玩家].封地信息表[第几个封地].ID == 1 ? 15 : 10;
-		if (轮回数值规则.可研究轮回科技(当前等级, 轮回系统.当前轮回数, 书院等级, 书院上限)) return true;
-		全局变量.提示类.显示信息(当前等级 >= 轮回数值规则.科技等级上限(6, 轮回系统.当前轮回数) ? "已达到本轮回科技上限" : "书院等级不足!");
+		if (轮回数值规则.可研究轮回科技(当前等级, 轮回系统.当前轮回数, 书院等级, 书院上限, 科技索引)) return true;
+		全局变量.提示类.显示信息(当前等级 >= 轮回数值规则.科技等级上限(科技索引, 轮回系统.当前轮回数) ? "已达到本轮回科技上限" : "书院等级不足!");
 		return false;
 	}
 

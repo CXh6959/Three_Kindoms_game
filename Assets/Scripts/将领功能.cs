@@ -60,6 +60,7 @@ public class 将领功能 : MonoBehaviour
 
 	public void 开始渲染将领()
 	{
+		本将领信息.将领配兵.记录当前兵种();
 		战斗系统脚本对象 = base.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<战斗系统>();
 		UnityEngine.Debug.Log(本将领信息.详细信息.坑位颜色.ToString() + "方将领" + 本将领信息.将领属性.初始属性.名字 + "开始渲染");
 		本将领信息.详细信息.状态 = 1.0;
@@ -198,6 +199,7 @@ public class 将领功能 : MonoBehaviour
 		}
 		else if (本将领信息.详细信息.剩余兵力 <= 0.0)
 		{
+			本将领信息.将领配兵.记录当前兵种();
 			本将领信息.详细信息.剩余兵力 = 0.0;
 			本将领信息.将领配兵.数量 = 0.0;
 			本将领信息.将领配兵.ID = 0.0;
@@ -733,7 +735,7 @@ public class 将领功能 : MonoBehaviour
 
 			private void 将领显示特效()
 			{
-				对象 = UnityEngine.Object.Instantiate(全局变量.将领底部特效pre);
+				GameObject 对象 = UnityEngine.Object.Instantiate(全局变量.将领底部特效pre);
 				对象.transform.SetParent(base.transform);
 				对象.transform.localPosition = new Vector2(0f, -3.2f);
 				int num = 全局将领库.查询指定ID的头像特效(本将领信息.将领属性.初始属性.ID);

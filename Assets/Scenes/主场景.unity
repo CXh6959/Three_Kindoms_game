@@ -560321,6 +560321,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 898c89022857383796b5d7f192a35c57, type: 3}
+  批量补兵模板: {fileID: 1790966117469647928}
   m_Name: 
   m_EditorClassIdentifier: 
   "\u663E\u793A\u7B2C\u51E0\u4E2A\u5C01\u5730": 0
@@ -608794,6 +608795,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1c595d63a00ca79d74f1ce427cb16c4, type: 3}
+  增援界面模板: {fileID: 1790966117469649900}
   m_Name: 
   m_EditorClassIdentifier: 
   "\u6218\u6597\u5730\u56FE\u5BF9\u8C61": {fileID: 0}
@@ -608950,7 +608952,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1790966117469653370}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1790966117469653365}
+        m_TargetAssemblyTypeName: 战斗界面UI脚本, Assembly-CSharp
+        m_MethodName: 打开增援界面
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1790966117469653370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -625053,6 +625067,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6940dbda6d713fe9a80284c482c90f69, type: 3}
+  批量补兵模板: {fileID: 1790966117469647928}
   m_Name: 
   m_EditorClassIdentifier: 
   "\u663E\u793A\u7B2C\u51E0\u4E2A\u5C01\u5730": -1
