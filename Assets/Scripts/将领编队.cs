@@ -25,6 +25,20 @@ public class 将领编队 : MonoBehaviour
 
 	public Text 页数显示对象;
 
+	public Button 批量补兵模板;
+
+	private void Start()
+	{
+		原生补兵按钮.创建(批量补兵模板, transform.Find("编队界面操作"), 全部将领补兵);
+	}
+
+	public void 全部将领补兵()
+	{
+		int 人数 = 补兵规则.全部补满(全局变量.所有玩家数据表[第几个玩家]);
+		刷新编队();
+		全局变量.提示类.显示信息("已为" + 人数 + "名将领补兵");
+	}
+
 	public void 重置刷新将领列表()
 	{
 		获取要显示的将领列表();

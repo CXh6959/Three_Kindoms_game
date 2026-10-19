@@ -29,7 +29,7 @@ public static class 轮回系统
 
 	public static int 获取将领等级上限()
 	{
-		return Mathf.Max(1, 当前轮回数) * 99;
+		return 99;
 	}
 
 	public static bool 进入下一轮回()

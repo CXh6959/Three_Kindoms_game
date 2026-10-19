@@ -25,16 +25,18 @@ public static class 轮回数值规则
 	{
 		switch (科技索引)
 		{
-		case 6: case 7: case 8: case 10: case 11: case 12: case 13:
+		case 12:
+			return (int)Math.Min(80L, 10L + Math.Max(1, 轮回数) - 1L);
+		case 6: case 7: case 8: case 9: case 10: case 11: case 13:
 			return (int)Math.Min(int.MaxValue, 10L + Math.Max(1, 轮回数) - 1L);
 		default:
 			return 10;
 		}
 	}
 
-	public static bool 可研究轮回科技(double 当前等级, int 轮回数, int 书院等级, int 书院上限)
+	public static bool 可研究轮回科技(double 当前等级, int 轮回数, int 书院等级, int 书院上限, int 科技索引 = 6)
 	{
-		return 当前等级 >= 0 && 当前等级 < 科技等级上限(6, 轮回数) &&
+		return 当前等级 >= 0 && 当前等级 < 科技等级上限(科技索引, 轮回数) &&
 			书院等级 >= Math.Min(当前等级 + 1.0, 书院上限);
 	}
 }

@@ -32,14 +32,14 @@ public static class 战斗模型资源
 		switch (名字)
 		{
 		case "蚩尤": return 2f;
+		case "象骑兵": case "藤甲兵": case "火油兵": case "玄甲兵": return 2f;
 		case "青龙": case "白虎": case "朱雀": case "玄武": return 1.5f;
 		default: return 1f;
 		}
 	}
 
-	public static GameObject 创建(将领信息 将领, Transform 父对象)
+	public static Sprite 获取图片(string 名字)
 	{
-		string 名字 = 获取资源名(将领);
 		if (名字 == null) return null;
 		Sprite 图片;
 		if (!缓存.TryGetValue(名字, out 图片))
@@ -47,11 +47,20 @@ public static class 战斗模型资源
 			图片 = Resources.Load<Sprite>("战斗替换模型/" + 名字);
 			缓存[名字] = 图片;
 		}
+		return 图片;
+	}
+
+	public static GameObject 创建(将领信息 将领, Transform 父对象)
+	{
+		string 名字 = 获取资源名(将领);
+		Sprite 图片 = 获取图片(名字);
 		if (图片 == null) return null;
 		GameObject 模型 = new GameObject(名字);
+		模型.layer = 父对象.gameObject.layer;
 		模型.transform.SetParent(父对象, false);
 		SpriteRenderer 渲染 = 模型.AddComponent<SpriteRenderer>();
 		渲染.sprite = 图片;
+		渲染.sortingOrder = 3;
 		渲染.flipX = 将领.详细信息.坑位颜色 == 0.0;
 		float 倍率 = 获取大小倍率(名字);
 		模型.transform.localScale = new Vector3(倍率, 倍率, 1f);
